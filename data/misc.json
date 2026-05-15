@@ -1,0 +1,101 @@
+[
+  {
+    "id": 40,
+    "name": "Travel Insurance",
+    "cat": "Insurance",
+    "date": "Jun 10",
+    "price": 180,
+    "city": "General",
+    "paidBy": "Ilias",
+    "involves": ["Ilias", "Diana", "Ilias2", "Diana2"],
+    "deleted": false
+  },
+  {
+    "id": 41,
+    "name": "Airport Transfers",
+    "cat": "Transport",
+    "date": "Jun 15",
+    "price": 240,
+    "city": "Athens",
+    "paidBy": "Diana",
+    "involves": ["Ilias", "Diana", "Ilias2", "Diana2"],
+    "deleted": false
+  },
+  {
+    "id": 42,
+    "name": "SIM Card & Data",
+    "cat": "Utilities",
+    "date": "Jun 15",
+    "price": 35,
+    "city": "General",
+    "paidBy": "Diana",
+    "involves": ["Ilias", "Diana", "Ilias2", "Diana2"],
+    "deleted": false
+  },
+  {
+    "id": 43,
+    "name": "Shopping Budget",
+    "cat": "Shopping",
+    "date": "Jun 15",
+    "price": 400,
+    "city": "General",
+    "paidBy": "Ilias",
+    "involves": ["Ilias"],
+    "deleted": false
+  },
+  {
+    "id": 44,
+    "name": "Daily Food Budget",
+    "cat": "Dining",
+    "date": "Jun 15",
+    "price": 900,
+    "city": "General",
+    "paidBy": "Ilias",
+    "involves": ["Ilias", "Diana", "Ilias2"],
+    "deleted": false
+  },
+  {
+    "name": "qwertyu",
+    "cat": "Transport",
+    "date": "Jun 11",
+    "price": 100,
+    "city": "General",
+    "paidBy": "Ilias",
+    "involves": ["Ilias", "Diana", "Diana2"],
+    "id": 61,
+    "deleted": false
+  },
+  {
+    "name": "hgfd",
+    "cat": "Transport",
+    "date": "Jum 11",
+    "price": 111,
+    "city": "General",
+    "paidBy": "Ilias",
+    "involves": ["Ilias", "Diana", "Ilias2", "Diana2"],
+    "id": 62,
+    "deleted": false
+  },
+  {
+    "name": "qwertyhj",
+    "cat": "Transport",
+    "date": "Jul 13",
+    "price": 123,
+    "city": "General",
+    "paidBy": "Ilias",
+    "involves": ["Ilias", "Diana", "Ilias2", "Diana2"],
+    "id": 61,
+    "deleted": false
+  },
+  {
+    "name": "hgfds",
+    "cat": "Transport",
+    "date": "Sep 4",
+    "price": 122,
+    "city": "Santorini",
+    "paidBy": "Ilias",
+    "involves": ["Ilias", "Diana", "Diana2"],
+    "id": 62,
+    "deleted": false
+  }
+]

@@ -1,0 +1,57 @@
+[
+  {
+    "id": 1,
+    "from": "Athens (ATH)",
+    "to": "Santorini (JTR)",
+    "airline": "Aegean Airlines",
+    "no": "A3 331",
+    "date": "Jun 17",
+    "time": "07:40",
+    "price": 89,
+    "deleted": false
+  },
+  {
+    "id": 2,
+    "from": "Santorini (JTR)",
+    "to": "Rome (FCO)",
+    "airline": "Ryanair",
+    "no": "FR 9982",
+    "date": "Jun 22",
+    "time": "13:15",
+    "price": 145,
+    "deleted": false
+  },
+  {
+    "id": 3,
+    "from": "Rome (FCO)",
+    "to": "Paris (CDG)",
+    "airline": "Air France",
+    "no": "AF 1138",
+    "date": "Jun 28",
+    "time": "09:00",
+    "price": 210,
+    "deleted": false
+  },
+  {
+    "id": 4,
+    "from": "Paris (CDG)",
+    "to": "Athens (ATH)",
+    "airline": "easyJet",
+    "no": "U2 8830",
+    "date": "Jul 5",
+    "time": "18:45",
+    "price": 185,
+    "deleted": false
+  },
+  {
+    "from": "Paris",
+    "to": "London",
+    "airline": "Aegean Airlines",
+    "no": "A4 123",
+    "date": "Jul 7",
+    "time": "18:33",
+    "price": 123,
+    "id": 61,
+    "deleted": false
+  }
+]

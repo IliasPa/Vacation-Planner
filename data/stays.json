@@ -1,0 +1,6 @@
+[
+  { "id": 10, "city": "Athens",    "name": "Hotel Grande Bretagne", "type": "5★ Hotel",       "ci": "Jun 15", "co": "Jun 17", "n": 2, "ppn": 280 },
+  { "id": 11, "city": "Santorini", "name": "Mystique Suites Oia",   "type": "Luxury Resort",  "ci": "Jun 17", "co": "Jun 22", "n": 5, "ppn": 420 },
+  { "id": 12, "city": "Rome",      "name": "Palazzo Manfredi",      "type": "Boutique Hotel", "ci": "Jun 22", "co": "Jun 28", "n": 6, "ppn": 320 },
+  { "id": 13, "city": "Paris",     "name": "Hôtel Le Marois",       "type": "4★ Hotel",       "ci": "Jun 28", "co": "Jul 5",  "n": 7, "ppn": 390 }
+]
