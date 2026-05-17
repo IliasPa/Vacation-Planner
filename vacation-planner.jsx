@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import {
-  Plane,
   Trash2,
   RotateCcw,
   Plus,
@@ -58,6 +57,63 @@ const MISC_CITIES = ["General", ...CITIES];
 const PIE_COLORS = ["#c9913b", "#2563eb", "#059669", "#9333ea"];
 const TRAVELERS = ["Ilias", "Diana", "Ilias2", "Diana2"];
 
+const TRANSPORT_TYPES = ["Flight", "Train", "Ferry", "Bus", "Car", "Other"];
+const TRANSPORT_EMOJI = {
+  Flight: "✈️",
+  Train: "🚂",
+  Ferry: "⛴️",
+  Bus: "🚌",
+  Car: "🚗",
+  Other: "🚀",
+};
+const CURRENCIES = [
+  "EUR",
+  "THB",
+  "USD",
+  "GBP",
+  "JPY",
+  "AUD",
+  "CAD",
+  "CHF",
+  "CNY",
+  "SEK",
+  "NOK",
+  "DKK",
+  "HKD",
+  "SGD",
+  "INR",
+  "MXN",
+  "BRL",
+  "TRY",
+  "KRW",
+  "NZD",
+  "ZAR",
+];
+const CURRENCY_SYMBOL = {
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+  JPY: "¥",
+  AUD: "A$",
+  CAD: "C$",
+  CHF: "Fr",
+  CNY: "¥",
+  SEK: "kr",
+  NOK: "kr",
+  DKK: "kr",
+  HKD: "HK$",
+  SGD: "S$",
+  INR: "₹",
+  MXN: "MX$",
+  BRL: "R$",
+  TRY: "₺",
+  KRW: "₩",
+  NZD: "NZ$",
+  ZAR: "R",
+  THB: "฿",
+};
+const sym = (c) => CURRENCY_SYMBOL[c] || c;
+
 const MONTH_NUM = {
   Jan: 1,
   Feb: 2,
@@ -76,6 +132,13 @@ const parseDate = (d) => {
   if (!d) return Infinity;
   const [m, day] = d.split(" ");
   return (MONTH_NUM[m] || 0) * 100 + parseInt(day, 10);
+};
+
+const calcNights = (ci, co, year) => {
+  const d1 = parseTripDate(ci, year);
+  const d2 = parseTripDate(co, year);
+  if (!d1 || !d2 || d2 <= d1) return 1;
+  return Math.round((d2 - d1) / 86400000);
 };
 
 let _nextId = 60;
@@ -177,6 +240,7 @@ const Field = ({ label, k, val, set, type = "text", opts = null }) => (
         onChange={(e) => set((p) => ({ ...p, [k]: e.target.value }))}
         style={inp}
       >
+        {!val[k] && <option value="">— select —</option>}
         {opts.map((o) => (
           <option key={o}>{o}</option>
         ))}
@@ -365,6 +429,72 @@ const SectionHeader = ({ title, sub, onAdd }) => (
   </div>
 );
 
+const PdfInput = ({ value, onChange }) => (
+  <div style={{ flex: 1, minWidth: 200 }}>
+    <div
+      style={{
+        fontSize: 10,
+        color: "#94a3b8",
+        fontWeight: 700,
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        marginBottom: 4,
+      }}
+    >
+      PDF Attachment
+    </div>
+    <label style={{ cursor: "pointer" }}>
+      <input
+        type="file"
+        accept=".pdf,application/pdf"
+        style={{ display: "none" }}
+        onChange={(e) => onChange(e.target.files?.[0])}
+      />
+      <div
+        style={{
+          ...inp,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          color: value ? "#059669" : "#94a3b8",
+        }}
+      >
+        <span style={{ fontSize: 14 }}>📄</span>
+        <span
+          style={{
+            fontSize: 12,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {value ? value.replace(/^\d+-/, "") : "Choose PDF…"}
+        </span>
+      </div>
+    </label>
+  </div>
+);
+
+const PdfBtn = ({ pdf, onOpen }) =>
+  pdf ? (
+    <button
+      onClick={() => onOpen(pdf)}
+      title={pdf.replace(/^\d+-/, "")}
+      style={{
+        background: "#eff6ff",
+        border: "1px solid #bfdbfe",
+        borderRadius: 7,
+        cursor: "pointer",
+        padding: "4px 8px",
+        fontSize: 14,
+        flexShrink: 0,
+        lineHeight: 1,
+      }}
+    >
+      📄
+    </button>
+  ) : null;
+
 const DeleteBtn = ({ onClick }) => (
   <Btn variant="ghost" onClick={onClick} style={{ flexShrink: 0 }}>
     <Trash2 size={14} />
@@ -377,7 +507,6 @@ export default function VacationPlanner() {
   const [stays, setStays] = useState([]);
   const [acts, setActs] = useState([]);
   const [misc, setMisc] = useState([]);
-  const [itinerary, setItinerary] = useState([]);
   const [trip, setTrip] = useState({
     name: "Summer Escape 2025",
     cities: ["Athens", "Santorini", "Rome", "Paris"],
@@ -394,12 +523,26 @@ export default function VacationPlanner() {
     year: 2025,
   });
 
+  const [fxC1, setFxC1] = useState("EUR");
+  const [fxC2, setFxC2] = useState("THB");
+  const [fxRate, setFxRate] = useState(null);
+  const [fxLoading, setFxLoading] = useState(false);
+  const [pdfPreview, setPdfPreview] = useState(null);
+  const fxSaveReady = useRef(false);
+
+  const fxAmt = (amount) => {
+    if (!fxRate || fxC1 === fxC2 || !amount) return null;
+    return `${sym(fxC2)} ${Math.round(amount * fxRate).toLocaleString()}`;
+  };
+  const pc = (amount) => `${sym(fxC1)}${Number(amount).toLocaleString()}`;
+
   const [addF, setAddF] = useState(false);
   const [addS, setAddS] = useState(false);
   const [addA, setAddA] = useState(false);
   const [addM, setAddM] = useState(false);
 
   const [nf, setNf] = useState({
+    type: "Flight",
     from: "",
     to: "",
     airline: "",
@@ -407,6 +550,7 @@ export default function VacationPlanner() {
     date: "",
     time: "",
     price: "",
+    pdf: "",
   });
   const [ns, setNs] = useState({
     city: CITIES[0],
@@ -416,6 +560,8 @@ export default function VacationPlanner() {
     co: "",
     n: "",
     ppn: "",
+    totalPrice: "",
+    pdf: "",
   });
   const [na, setNa] = useState({
     city: CITIES[0],
@@ -447,16 +593,37 @@ export default function VacationPlanner() {
     fetch("/api/misc")
       .then((r) => r.json())
       .then(setMisc);
-    fetch("/api/itinerary")
-      .then((r) => r.json())
-      .then(setItinerary);
     fetch("/api/trip")
       .then((r) => r.json())
       .then((d) => {
         setTrip(d);
         setTripForm(d);
+        if (d.fxC1) setFxC1(d.fxC1);
+        if (d.fxC2) setFxC2(d.fxC2);
+        fxSaveReady.current = true;
       });
   }, []);
+
+  useEffect(() => {
+    setFxLoading(true);
+    setFxRate(null);
+    fetch(`/api/fx?from=${fxC1}&to=${fxC2}`)
+      .then((r) => r.json())
+      .then((d) => {
+        setFxRate(d.rates?.[fxC2] ?? null);
+        setFxLoading(false);
+      })
+      .catch(() => setFxLoading(false));
+  }, [fxC1, fxC2]);
+
+  useEffect(() => {
+    if (!fxSaveReady.current) return;
+    fetch("/api/trip", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fxC1, fxC2 }),
+    });
+  }, [fxC1, fxC2]);
 
   const softDel = (resource, set, id) => {
     set((p) => p.map((x) => (x.id === id ? { ...x, deleted: true } : x)));
@@ -522,8 +689,8 @@ export default function VacationPlanner() {
     tripStartD && tripEndD
       ? Math.round((tripEndD - tripStartD) / 86400000)
       : "?";
-  const tripLabel  = `${trip.start} – ${trip.end}, ${trip.year}`;
-  const cities     = trip.cities?.length ? trip.cities : CITIES;
+  const tripLabel = `${trip.start} – ${trip.end}, ${trip.year}`;
+  const cities = trip.cities?.length ? trip.cities : CITIES;
   const miscCities = ["General", ...cities];
 
   const trash = [
@@ -572,12 +739,22 @@ export default function VacationPlanner() {
     { name: "Extras", value: mTotal },
   ].filter((d) => d.value > 0);
 
+  const uploadPdf = async (file, set) => {
+    if (!file) return;
+    const form = new FormData();
+    form.append("pdf", file);
+    const res = await fetch("/api/upload", { method: "POST", body: form });
+    const data = await res.json();
+    if (data.filename) set((p) => ({ ...p, pdf: data.filename }));
+  };
+
   const doAddFlight = () => {
     if (!nf.from || !nf.to || !nf.price) return;
     const item = { ...nf, id: uid(), price: +nf.price, deleted: false };
     setFlights((p) => [...p, item]);
     api.post("flights", item);
     setNf({
+      type: "Flight",
       from: "",
       to: "",
       airline: "",
@@ -585,16 +762,19 @@ export default function VacationPlanner() {
       date: "",
       time: "",
       price: "",
+      pdf: "",
     });
     setAddF(false);
   };
   const doAddStay = () => {
-    if (!ns.name || !ns.ppn) return;
+    if (!ns.name || !ns.totalPrice) return;
+    const computedN = calcNights(ns.ci, ns.co, trip.year);
+    const computedPpn = +ns.totalPrice / computedN;
     const item = {
       ...ns,
       id: uid(),
-      n: +ns.n || 1,
-      ppn: +ns.ppn,
+      n: computedN,
+      ppn: computedPpn,
       deleted: false,
     };
     setStays((p) => [...p, item]);
@@ -607,6 +787,8 @@ export default function VacationPlanner() {
       co: "",
       n: "",
       ppn: "",
+      totalPrice: "",
+      pdf: "",
     });
     setAddS(false);
   };
@@ -638,66 +820,31 @@ export default function VacationPlanner() {
   /* ===== TABS ===== */
 
   const renderOverview = () => {
-    const statCard = (label, value, sub, color = NAVY) => (
-      <div style={{ ...card, flex: 1, minWidth: 140, padding: "18px 18px" }}>
-        <div
-          style={{
-            fontSize: 10,
-            color: "#94a3b8",
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            marginBottom: 8,
-          }}
-        >
-          {label}
-        </div>
-        <div
-          style={{
-            fontSize: 22,
-            fontFamily: "Georgia, serif",
-            color,
-            fontWeight: "normal",
-          }}
-        >
-          {value}
-        </div>
-        {sub && (
-          <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>
-            {sub}
-          </div>
-        )}
-      </div>
-    );
+    const matchCity = (dest) => cities.find((c) => dest.includes(c)) || null;
+    const activeFlights = flights
+      .filter((f) => !f.deleted)
+      .sort((a, b) => parseDate(a.date) - parseDate(b.date));
+    const computedItinerary = [];
+    if (cities.length > 0 && trip.start) {
+      computedItinerary.push({
+        emoji: "🌍",
+        city: cities[0],
+        date: trip.start,
+        desc: "Trip begins",
+      });
+    }
+    activeFlights.forEach((f) => {
+      computedItinerary.push({
+        emoji: TRANSPORT_EMOJI[f.type] || "✈️",
+        city: matchCity(f.to) || f.to,
+        date: f.date,
+        desc: `${f.from} → ${f.to}${f.airline ? ` · ${f.airline}` : ""}`,
+        pdf: f.pdf || null,
+      });
+    });
+
     return (
       <div>
-        <div
-          style={{
-            display: "flex",
-            gap: 10,
-            marginBottom: 24,
-            flexWrap: "wrap",
-          }}
-        >
-          {statCard(
-            "Total Budget Used",
-            `$${grand.toLocaleString()}`,
-            `${Math.round((grand / BUDGET) * 100)}% of $${BUDGET.toLocaleString()}`,
-            GOLD,
-          )}
-          {statCard("Trip Duration", `${tripDays} days`, tripLabel)}
-          {statCard(
-            "Destinations",
-            `${cities.length} ${cities.length === 1 ? "city" : "cities"}`,
-            cities.join(" · "),
-          )}
-          {statCard(
-            "Activities",
-            `${acts.filter((a) => !a.deleted).length}`,
-            "experiences planned",
-          )}
-        </div>
-
         <h3
           style={{
             fontSize: 11,
@@ -720,7 +867,12 @@ export default function VacationPlanner() {
           }}
         >
           {cities.map((city) => {
-            const cs = CITY_STYLE[city] || { dot: "#888", bg: "#f5f5f5", text: "#555", border: "#88888833" };
+            const cs = CITY_STYLE[city] || {
+              dot: "#888",
+              bg: "#f5f5f5",
+              text: "#555",
+              border: "#88888833",
+            };
             const cityStay = stays.find((s) => s.city === city && !s.deleted);
             const cityActs = acts.filter((a) => a.city === city && !a.deleted);
             const cityFlight = flights.find(
@@ -791,11 +943,20 @@ export default function VacationPlanner() {
                   <span style={{ fontSize: 11, color: cs.text }}>
                     Est. total
                   </span>
-                  <span
-                    style={{ fontSize: 14, fontWeight: 700, color: cs.text }}
-                  >
-                    ${total.toLocaleString()}
-                  </span>
+                  <div style={{ textAlign: "right" }}>
+                    <div
+                      style={{ fontSize: 14, fontWeight: 700, color: cs.text }}
+                    >
+                      {pc(total)}
+                    </div>
+                    {fxAmt(total) && (
+                      <div
+                        style={{ fontSize: 10, color: "#94a3b8", marginTop: 1 }}
+                      >
+                        {fxAmt(total)}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -815,9 +976,14 @@ export default function VacationPlanner() {
           Itinerary
         </h3>
         <div style={{ ...card, padding: "20px 22px" }}>
-          {itinerary.map((ev, i) => {
-            const cs = CITY_STYLE[ev.city] || { dot: "#888", bg: "#f5f5f5", text: "#555", border: "#88888833" };
-            const isLast = i === itinerary.length - 1;
+          {computedItinerary.map((ev, i) => {
+            const cs = CITY_STYLE[ev.city] || {
+              dot: "#888",
+              bg: "#f5f5f5",
+              text: "#555",
+              border: "#88888833",
+            };
+            const isLast = i === computedItinerary.length - 1;
             return (
               <div key={i} style={{ display: "flex", gap: 16 }}>
                 <div
@@ -828,17 +994,24 @@ export default function VacationPlanner() {
                   }}
                 >
                   <div
+                    onClick={
+                      ev.pdf
+                        ? () => setPdfPreview(ev.pdf)
+                        : undefined
+                    }
+                    title={ev.pdf ? ev.pdf.replace(/^\d+-/, "") : undefined}
                     style={{
                       width: 34,
                       height: 34,
                       borderRadius: "50%",
                       background: cs ? cs.bg : "#f1f5f9",
-                      border: `1.5px solid ${cs ? cs.border : "#e8e4dc"}`,
+                      border: `1.5px solid ${ev.pdf ? GOLD : cs ? cs.border : "#e8e4dc"}`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       fontSize: 16,
                       flexShrink: 0,
+                      cursor: ev.pdf ? "pointer" : "default",
                     }}
                   >
                     {ev.emoji}
@@ -904,8 +1077,8 @@ export default function VacationPlanner() {
     return (
       <div>
         <SectionHeader
-          title="Flights"
-          sub={`${active.length} flights · $${fTotal.toLocaleString()} total`}
+          title="Transport"
+          sub={`${active.length} legs · ${sym(fxC1)}${fTotal.toLocaleString()} total`}
           onAdd={() => setAddF((f) => !f)}
         />
 
@@ -923,12 +1096,26 @@ export default function VacationPlanner() {
               marginBottom: 10,
             }}
           >
-            <Field label="From" k="from" val={nf} set={setNf} />
-            <Field label="To" k="to" val={nf} set={setNf} />
-            <Field label="Airline" k="airline" val={nf} set={setNf} />
+            <Field
+              label="Type"
+              k="type"
+              val={nf}
+              set={setNf}
+              opts={TRANSPORT_TYPES}
+            />
+            <Field label="From" k="from" val={nf} set={setNf} opts={cities} />
+            <Field label="To" k="to" val={nf} set={setNf} opts={cities} />
+            <Field label="Operator" k="airline" val={nf} set={setNf} />
           </div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <Field label="Flight No." k="no" val={nf} set={setNf} />
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              flexWrap: "wrap",
+              marginBottom: 10,
+            }}
+          >
+            <Field label="No. / Ref" k="no" val={nf} set={setNf} />
             <DateField label="Date" k="date" val={nf} set={setNf} />
             <Field label="Time" k="time" val={nf} set={setNf} />
             <Field
@@ -939,6 +1126,12 @@ export default function VacationPlanner() {
               type="number"
             />
           </div>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <PdfInput
+              value={nf.pdf}
+              onChange={(file) => uploadPdf(file, setNf)}
+            />
+          </div>
         </AddForm>
 
         {active.map((f) => (
@@ -947,18 +1140,27 @@ export default function VacationPlanner() {
             style={{ ...card, display: "flex", alignItems: "center", gap: 14 }}
           >
             <div
+              onClick={
+                f.pdf
+                  ? () => setPdfPreview(f.pdf)
+                  : undefined
+              }
+              title={f.pdf ? f.pdf.replace(/^\d+-/, "") : undefined}
               style={{
                 width: 38,
                 height: 38,
                 borderRadius: "50%",
                 background: "#dbeafe",
+                border: `1.5px solid ${f.pdf ? GOLD : "#dbeafe"}`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 flexShrink: 0,
+                fontSize: 18,
+                cursor: f.pdf ? "pointer" : "default",
               }}
             >
-              <Plane size={17} color="#2563eb" />
+              {TRANSPORT_EMOJI[f.type] || "✈️"}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>
@@ -971,20 +1173,41 @@ export default function VacationPlanner() {
                 {f.to}
               </div>
               <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
+                {f.type && f.type !== "Flight" && (
+                  <span
+                    style={{
+                      background: "#f1f5f9",
+                      color: "#475569",
+                      borderRadius: 5,
+                      padding: "1px 6px",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      marginRight: 6,
+                    }}
+                  >
+                    {f.type}
+                  </span>
+                )}
                 {f.airline} · {f.no}
                 {f.date ? ` · ${f.date}` : ""}
                 {f.time ? ` · ${f.time}` : ""}
               </div>
             </div>
-            <div
-              style={{
-                fontFamily: "Georgia, serif",
-                fontSize: 18,
-                color: NAVY,
-                flexShrink: 0,
-              }}
-            >
-              ${f.price}
+            <div style={{ textAlign: "right", flexShrink: 0 }}>
+              <div
+                style={{
+                  fontFamily: "Georgia, serif",
+                  fontSize: 18,
+                  color: NAVY,
+                }}
+              >
+                {pc(f.price)}
+              </div>
+              {fxAmt(f.price) && (
+                <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 1 }}>
+                  {fxAmt(f.price)}
+                </div>
+              )}
             </div>
             <DeleteBtn onClick={() => softDel("flights", setFlights, f.id)} />
           </div>
@@ -1000,12 +1223,12 @@ export default function VacationPlanner() {
           }}
         >
           <span style={{ fontSize: 13, fontWeight: 700, color: "#64748b" }}>
-            Total Flights
+            Total Transport
           </span>
           <span
             style={{ fontFamily: "Georgia, serif", fontSize: 20, color: GOLD }}
           >
-            ${fTotal.toLocaleString()}
+            {pc(fTotal)}
           </span>
         </div>
       </div>
@@ -1018,7 +1241,7 @@ export default function VacationPlanner() {
       <div>
         <SectionHeader
           title="Accommodations"
-          sub={`${active.length} stays · $${sTotal.toLocaleString()} total`}
+          sub={`${active.length} stays · ${sym(fxC1)}${sTotal.toLocaleString()} total`}
           onAdd={() => setAddS((s) => !s)}
         />
 
@@ -1040,16 +1263,28 @@ export default function VacationPlanner() {
             <Field label="Property Name" k="name" val={ns} set={setNs} />
             <Field label="Type" k="type" val={ns} set={setNs} />
           </div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              flexWrap: "wrap",
+              marginBottom: 10,
+            }}
+          >
             <DateField label="Check-in" k="ci" val={ns} set={setNs} />
             <DateField label="Check-out" k="co" val={ns} set={setNs} />
-            <Field label="Nights" k="n" val={ns} set={setNs} type="number" />
             <Field
-              label="Price/Night ($)"
-              k="ppn"
+              label="Total Price ($)"
+              k="totalPrice"
               val={ns}
               set={setNs}
               type="number"
+            />
+          </div>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <PdfInput
+              value={ns.pdf}
+              onChange={(file) => uploadPdf(file, setNs)}
             />
           </div>
         </AddForm>
@@ -1104,19 +1339,36 @@ export default function VacationPlanner() {
                   {s.type} · {s.ci} – {s.co} · {s.n} nights
                 </div>
                 <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
-                  ${s.ppn.toLocaleString()}/night
+                  {pc(s.ppn)}/night
                 </div>
               </div>
-              <div style={{ textAlign: "right", flexShrink: 0 }}>
-                <div
-                  style={{
-                    fontFamily: "Georgia, serif",
-                    fontSize: 18,
-                    color: NAVY,
-                  }}
-                >
-                  ${(s.n * s.ppn).toLocaleString()}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  flexShrink: 0,
+                }}
+              >
+                <div style={{ textAlign: "right" }}>
+                  <div
+                    style={{
+                      fontFamily: "Georgia, serif",
+                      fontSize: 18,
+                      color: NAVY,
+                    }}
+                  >
+                    {pc(s.n * s.ppn)}
+                  </div>
+                  {fxAmt(s.n * s.ppn) && (
+                    <div
+                      style={{ fontSize: 10, color: "#94a3b8", marginTop: 1 }}
+                    >
+                      {fxAmt(s.n * s.ppn)}
+                    </div>
+                  )}
                 </div>
+                <PdfBtn pdf={s.pdf} onOpen={setPdfPreview} />
                 <DeleteBtn onClick={() => softDel("stays", setStays, s.id)} />
               </div>
             </div>
@@ -1138,7 +1390,7 @@ export default function VacationPlanner() {
           <span
             style={{ fontFamily: "Georgia, serif", fontSize: 20, color: GOLD }}
           >
-            ${sTotal.toLocaleString()}
+            {pc(sTotal)}
           </span>
         </div>
       </div>
@@ -1151,7 +1403,7 @@ export default function VacationPlanner() {
       <div>
         <SectionHeader
           title="Activities"
-          sub={`${active.length} experiences · $${aTotal.toLocaleString()} total`}
+          sub={`${active.length} experiences · ${sym(fxC1)}${aTotal.toLocaleString()} total`}
           onAdd={() => setAddA((a) => !a)}
         />
 
@@ -1207,7 +1459,7 @@ export default function VacationPlanner() {
               >
                 <CityBadge city={city} />
                 <span style={{ fontSize: 12, color: "#94a3b8" }}>
-                  {cityActs.length} activities · ${cityTotal.toLocaleString()}
+                  {cityActs.length} activities · {pc(cityTotal)}
                 </span>
               </div>
               {cityActs.map((a) => (
@@ -1263,15 +1515,23 @@ export default function VacationPlanner() {
                       )}
                     </div>
                   </div>
-                  <div
-                    style={{
-                      fontFamily: "Georgia, serif",
-                      fontSize: 16,
-                      color: NAVY,
-                      flexShrink: 0,
-                    }}
-                  >
-                    ${a.price}
+                  <div style={{ flexShrink: 0, textAlign: "right" }}>
+                    <div
+                      style={{
+                        fontFamily: "Georgia, serif",
+                        fontSize: 16,
+                        color: NAVY,
+                      }}
+                    >
+                      {pc(a.price)}
+                    </div>
+                    {fxAmt(a.price) && (
+                      <div
+                        style={{ fontSize: 10, color: "#94a3b8", marginTop: 1 }}
+                      >
+                        {fxAmt(a.price)}
+                      </div>
+                    )}
                   </div>
                   <DeleteBtn
                     onClick={() => softDel("activities", setActs, a.id)}
@@ -1297,7 +1557,7 @@ export default function VacationPlanner() {
           <span
             style={{ fontFamily: "Georgia, serif", fontSize: 20, color: GOLD }}
           >
-            ${aTotal.toLocaleString()}
+            {pc(aTotal)}
           </span>
         </div>
       </div>
@@ -1372,7 +1632,7 @@ export default function VacationPlanner() {
               Spending Breakdown
             </h2>
             <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 3 }}>
-              Total: ${grand.toLocaleString()} of ${BUDGET.toLocaleString()}{" "}
+              Total: {pc(grand)} of {pc(BUDGET)}{" "}
               budget · {Math.round((grand / BUDGET) * 100)}% used
             </div>
           </div>
@@ -1391,7 +1651,7 @@ export default function VacationPlanner() {
           >
             <span>Budget progress</span>
             <span style={{ fontWeight: 700 }}>
-              ${grand.toLocaleString()} / ${BUDGET.toLocaleString()}
+              {pc(grand)} / {pc(BUDGET)}
             </span>
           </div>
           <div
@@ -1413,7 +1673,7 @@ export default function VacationPlanner() {
             />
           </div>
           <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 6 }}>
-            ${(BUDGET - grand).toLocaleString()} remaining
+            {pc(BUDGET - grand)} remaining
           </div>
         </div>
 
@@ -1456,7 +1716,7 @@ export default function VacationPlanner() {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(v) => [`$${Number(v).toLocaleString()}`, ""]}
+                    formatter={(v) => [`${pc(Number(v))}`, ""]}
                     contentStyle={{
                       fontSize: 13,
                       borderRadius: 8,
@@ -1549,7 +1809,7 @@ export default function VacationPlanner() {
                       color: NAVY,
                     }}
                   >
-                    ${row.value.toLocaleString()}
+                    {pc(row.value)}
                   </div>
                   <div style={{ fontSize: 11, color: "#94a3b8" }}>
                     {pct(row.value)}%
@@ -1747,7 +2007,7 @@ export default function VacationPlanner() {
                           {m.involves.length > 1 && (
                             <span style={{ color: GOLD, fontWeight: 600 }}>
                               {" "}
-                              · ${(m.price / m.involves.length).toFixed(0)}
+                              · {sym(fxC1)}{(m.price / m.involves.length).toFixed(0)}
                               /person
                             </span>
                           )}
@@ -1756,18 +2016,14 @@ export default function VacationPlanner() {
                     </div>
                   )}
                 </div>
+                {m.date && (
+                  <div
+                    style={{ fontSize: 12, color: "#94a3b8", flexShrink: 0 }}
+                  >
+                    {m.date}
+                  </div>
+                )}
                 <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  {m.date && (
-                    <div
-                      style={{
-                        fontSize: 12,
-                        color: "#94a3b8",
-                        marginBottom: 2,
-                      }}
-                    >
-                      {m.date}
-                    </div>
-                  )}
                   <div
                     style={{
                       fontFamily: "Georgia, serif",
@@ -1775,8 +2031,15 @@ export default function VacationPlanner() {
                       color: NAVY,
                     }}
                   >
-                    ${m.price.toLocaleString()}
+                    {pc(m.price)}
                   </div>
+                  {fxAmt(m.price) && (
+                    <div
+                      style={{ fontSize: 10, color: "#94a3b8", marginTop: 1 }}
+                    >
+                      {fxAmt(m.price)}
+                    </div>
+                  )}
                 </div>
                 <DeleteBtn onClick={() => softDel("misc", setMisc, m.id)} />
               </div>
@@ -1861,7 +2124,7 @@ export default function VacationPlanner() {
                       color: GOLD,
                     }}
                   >
-                    ${t.amt}
+                    {pc(t.amt)}
                   </span>
                 </div>
               ))}
@@ -1885,7 +2148,7 @@ export default function VacationPlanner() {
           <span
             style={{ fontFamily: "Georgia, serif", fontSize: 22, color: GOLD }}
           >
-            ${grand.toLocaleString()}
+            {pc(grand)}
           </span>
         </div>
       </div>
@@ -1973,7 +2236,7 @@ export default function VacationPlanner() {
                       flexShrink: 0,
                     }}
                   >
-                    ${item.amt.toLocaleString()}
+                    {pc(item.amt)}
                   </span>
                 )}
                 <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
@@ -2073,7 +2336,9 @@ export default function VacationPlanner() {
               }}
             >
               <span>📅 {tripLabel}</span>
-              <span>🌍 {tripDays} days · {cities.length} destinations</span>
+              <span>
+                🌍 {tripDays} days · {cities.length} destinations
+              </span>
               <span>✦ {acts.filter((a) => !a.deleted).length} activities</span>
               <button
                 onClick={() => {
@@ -2093,6 +2358,58 @@ export default function VacationPlanner() {
               >
                 ✏️
               </button>
+              <span
+                style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
+              >
+                <select
+                  value={fxC1}
+                  onChange={(e) => setFxC1(e.target.value)}
+                  style={{
+                    fontSize: 11,
+                    background: "#1e293b",
+                    color: "#94a3b8",
+                    border: "1px solid #334155",
+                    borderRadius: 5,
+                    padding: "2px 4px",
+                    fontFamily: "inherit",
+                    cursor: "pointer",
+                  }}
+                >
+                  {CURRENCIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+                <span style={{ color: "#475569" }}>→</span>
+                <select
+                  value={fxC2}
+                  onChange={(e) => setFxC2(e.target.value)}
+                  style={{
+                    fontSize: 11,
+                    background: "#1e293b",
+                    color: "#94a3b8",
+                    border: "1px solid #334155",
+                    borderRadius: 5,
+                    padding: "2px 4px",
+                    fontFamily: "inherit",
+                    cursor: "pointer",
+                  }}
+                >
+                  {CURRENCIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+                <span style={{ color: GOLD, fontSize: 11, minWidth: 80 }}>
+                  {fxLoading
+                    ? "…"
+                    : fxRate !== null
+                      ? `1 ${sym(fxC1)} = ${fxRate.toFixed(4)} ${sym(fxC2)}`
+                      : "—"}
+                </span>
+              </span>
             </div>
             {editTrip && (
               <div
@@ -2164,29 +2481,101 @@ export default function VacationPlanner() {
                   />
                 </div>
                 <div style={{ width: "100%", marginTop: 4 }}>
-                  <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>Cities (in order)</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      color: "#94a3b8",
+                      fontWeight: 700,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      marginBottom: 8,
+                    }}
+                  >
+                    Cities (in order)
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: 6,
+                      alignItems: "center",
+                    }}
+                  >
                     {tripForm.cities.map((city, i) => (
-                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <div
+                        key={i}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
+                      >
                         <input
                           value={city}
-                          onChange={e => setTripForm(p => ({ ...p, cities: p.cities.map((c, j) => j === i ? e.target.value : c) }))}
+                          onChange={(e) =>
+                            setTripForm((p) => ({
+                              ...p,
+                              cities: p.cities.map((c, j) =>
+                                j === i ? e.target.value : c,
+                              ),
+                            }))
+                          }
                           style={{ ...inp, width: 110 }}
                         />
                         <button
-                          onClick={() => setTripForm(p => ({ ...p, cities: p.cities.filter((_, j) => j !== i) }))}
-                          style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", fontSize: 18, padding: "0 2px", lineHeight: 1 }}
-                        >×</button>
+                          onClick={() =>
+                            setTripForm((p) => ({
+                              ...p,
+                              cities: p.cities.filter((_, j) => j !== i),
+                            }))
+                          }
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            color: "#64748b",
+                            fontSize: 18,
+                            padding: "0 2px",
+                            lineHeight: 1,
+                          }}
+                        >
+                          ×
+                        </button>
                       </div>
                     ))}
                     <button
-                      onClick={() => setTripForm(p => ({ ...p, cities: [...p.cities, ""] }))}
-                      style={{ background: "#334155", border: "none", borderRadius: 7, cursor: "pointer", color: "#94a3b8", fontSize: 12, padding: "6px 12px", fontFamily: "inherit" }}
-                    >+ Add</button>
+                      onClick={() =>
+                        setTripForm((p) => ({
+                          ...p,
+                          cities: [...p.cities, ""],
+                        }))
+                      }
+                      style={{
+                        background: "#334155",
+                        border: "none",
+                        borderRadius: 7,
+                        cursor: "pointer",
+                        color: "#94a3b8",
+                        fontSize: 12,
+                        padding: "6px 12px",
+                        fontFamily: "inherit",
+                      }}
+                    >
+                      + Add
+                    </button>
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: 8, width: "100%", marginTop: 4 }}>
-                  <Btn variant="gold" onClick={saveTrip}>Save</Btn>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    width: "100%",
+                    marginTop: 4,
+                  }}
+                >
+                  <Btn variant="gold" onClick={saveTrip}>
+                    Save
+                  </Btn>
                   <Btn onClick={() => setEditTrip(false)}>Cancel</Btn>
                 </div>
               </div>
@@ -2212,10 +2601,10 @@ export default function VacationPlanner() {
                 lineHeight: 1.1,
               }}
             >
-              ${grand.toLocaleString()}
+              {pc(grand)}
             </div>
             <div style={{ fontSize: 11, color: "#475569" }}>
-              of ${BUDGET.toLocaleString()} budget ·{" "}
+              of {pc(BUDGET)} budget ·{" "}
               {Math.round((grand / BUDGET) * 100)}%
             </div>
           </div>
@@ -2275,6 +2664,71 @@ export default function VacationPlanner() {
         {tab === "expenses" && renderExpenses()}
         {tab === "trash" && renderTrash()}
       </div>
+
+      {/* ─── PDF Preview Modal ─── */}
+      {pdfPreview && (
+        <div
+          onClick={() => setPdfPreview(null)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.7)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "white",
+              borderRadius: 12,
+              overflow: "hidden",
+              width: "min(90vw, 900px)",
+              height: "min(90vh, 1100px)",
+              display: "flex",
+              flexDirection: "column",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "10px 16px",
+                background: NAVY,
+                color: "white",
+                flexShrink: 0,
+              }}
+            >
+              <span style={{ fontSize: 13, color: "#94a3b8" }}>
+                {pdfPreview.replace(/^\d+-/, "")}
+              </span>
+              <button
+                onClick={() => setPdfPreview(null)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#94a3b8",
+                  fontSize: 20,
+                  lineHeight: 1,
+                  padding: "0 4px",
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <iframe
+              src={`/pdfs/${pdfPreview}`}
+              style={{ flex: 1, border: "none", width: "100%" }}
+              title={pdfPreview.replace(/^\d+-/, "")}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

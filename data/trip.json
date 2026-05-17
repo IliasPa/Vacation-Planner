@@ -6,7 +6,9 @@
     "Rome",
     "Paris"
   ],
-  "start": "Jun 15",
-  "end": "Jul 5",
-  "year": 2025
+  "start": "Jul 25",
+  "end": "Aug 9",
+  "year": 2025,
+  "fxC1": "EUR",
+  "fxC2": "THB"
 }

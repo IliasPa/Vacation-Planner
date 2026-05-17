@@ -44,13 +44,40 @@
     "deleted": false
   },
   {
-    "from": "Paris",
-    "to": "London",
-    "airline": "Aegean Airlines",
-    "no": "A4 123",
-    "date": "Jul 7",
-    "time": "18:33",
+    "type": "Train",
+    "from": "Athens",
+    "to": "Santorini",
+    "airline": "dafh",
+    "no": "afd",
+    "date": "Aug 12",
+    "time": "12:34",
     "price": 123,
+    "id": 61,
+    "deleted": false
+  },
+  {
+    "type": "Flight",
+    "from": "Athens",
+    "to": "Santorini",
+    "airline": "sfghs",
+    "no": "sdfhg",
+    "date": "Jul 9",
+    "time": "64",
+    "price": 145,
+    "pdf": "",
+    "id": 61,
+    "deleted": false
+  },
+  {
+    "type": "Flight",
+    "from": "Athens",
+    "to": "Santorini",
+    "airline": "vcghdfhf",
+    "no": "2345",
+    "date": "Jun 13",
+    "time": "12",
+    "price": 1244,
+    "pdf": "1779038588645-2026-01 CV - Paraskeva Ilias.pdf",
     "id": 61,
     "deleted": false
   }

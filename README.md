@@ -1,6 +1,6 @@
 # Vacation Planner
 
-A personal trip planning app that runs locally in your browser. Track flights, accommodations, activities, and expenses across multiple destinations — with a live budget overview and expense splitting for groups.
+A personal trip planning app that runs locally in your browser. Track transport legs, accommodations, activities, and expenses across multiple destinations — with live currency conversion, PDF attachments, and expense splitting for groups.
 
 ---
 
@@ -22,16 +22,16 @@ To close the app, close the terminal window.
 ## Tabs
 
 ### Overview
-A summary of the whole trip: total budget used, trip duration, number of destinations, and planned activities. Below that, each city shows its hotel, activity count, and estimated cost. At the bottom is the full itinerary timeline.
+A summary of the whole trip: total budget used, trip duration, number of destinations, and planned activities. Each city card shows its hotel, activity count, and estimated cost. At the bottom is a full itinerary timeline built automatically from your transport legs — click the emoji circle on any leg that has a PDF attached to preview the document in-app.
 
-### Flights
-Lists all flights with airline, flight number, date, and price. Click **Add** to log a new flight — From, To, and Price are required. Click the trash icon to remove a flight (it goes to Trash, not deleted permanently).
+### Flights (Transport)
+Lists all transport legs. Supported types: **Flight, Train, Ferry, Bus, Car, Other** — each with its own emoji. Click **Add** to log a new leg — From, To, and Price are required. You can also attach a PDF (ticket, booking confirmation) to any leg; the emoji circle turns gold when a PDF is attached and opens a preview when clicked. Click the trash icon to remove a leg (it goes to Trash, not deleted permanently).
 
 ### Stays
-Lists all accommodations. Add a stay with the hotel name, city, check-in/check-out dates, number of nights, and price per night. The total cost is calculated automatically.
+Lists all accommodations. Add a stay with the hotel name, city, check-in/check-out dates, and the total price — the nightly rate and number of nights are calculated automatically from the dates. You can attach a PDF (booking confirmation) to each stay. Click the trash icon to remove.
 
 ### Activities
-Activities grouped by city. Add an activity with a name, category (Culture, Food, Adventure, etc.), optional date, and price.
+Activities grouped by city. Add an activity with a name, category (Culture, Food, Adventure, Shopping, Wellness, Nightlife), optional date, and price.
 
 ### Expenses
 A full budget breakdown:
@@ -41,6 +41,24 @@ A full budget breakdown:
 
 ### Trash
 Anything you delete lands here first. You can **Restore** an item to bring it back, or **Delete** it permanently. Permanently deleted items are gone for good.
+
+---
+
+## Currency conversion
+
+The header shows two currency dropdowns (primary → secondary) with a live exchange rate fetched from [frankfurter.app](https://www.frankfurter.app). Every price in the app is displayed in the primary currency, with the converted secondary amount shown in smaller grey text below it. If both currencies are the same, only one figure is shown.
+
+Your last-used currency pair is saved automatically and restored on next launch.
+
+---
+
+## PDF attachments
+
+Flights and Stays each have a PDF upload field in their Add forms. The file is saved locally in `data/pdfs/`. When a PDF is attached:
+- The transport emoji circle gets a **gold border** — click it to preview the PDF inside the app.
+- The 📄 button appears on Stay cards — click it to preview.
+
+PDFs open in a full-screen in-app overlay. Click anywhere outside the document or the × button to close.
 
 ---
 
@@ -59,3 +77,12 @@ Click **Save** to apply changes.
 ## Data
 
 All data is saved locally in the `data/` folder as JSON files. Nothing is sent anywhere. If you want to reset everything, you can edit those files directly.
+
+| File | Contents |
+|---|---|
+| `trip.json` | Trip name, dates, cities, saved currency pair |
+| `flights.json` | Transport legs |
+| `stays.json` | Accommodations |
+| `activities.json` | Activities |
+| `misc.json` | Extra expenses |
+| `pdfs/` | Uploaded PDF files |

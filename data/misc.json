@@ -74,36 +74,5 @@
       "Ilias2"
     ],
     "deleted": false
-  },
-  {
-    "name": "qwertyu",
-    "cat": "Transport",
-    "date": "Jun 11",
-    "price": 100,
-    "city": "General",
-    "paidBy": "Ilias",
-    "involves": [
-      "Ilias",
-      "Diana",
-      "Diana2"
-    ],
-    "id": 61,
-    "deleted": false
-  },
-  {
-    "name": "qwertyhj",
-    "cat": "Transport",
-    "date": "Jul 13",
-    "price": 123,
-    "city": "General",
-    "paidBy": "Ilias",
-    "involves": [
-      "Ilias",
-      "Diana",
-      "Ilias2",
-      "Diana2"
-    ],
-    "id": 61,
-    "deleted": false
   }
 ]
