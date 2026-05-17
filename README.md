@@ -25,10 +25,10 @@ To close the app, close the terminal window.
 A summary of the whole trip: total budget used, trip duration, number of destinations, and planned activities. Each city card shows its hotel, activity count, and estimated cost. At the bottom is a full itinerary timeline built automatically from your transport legs — click the emoji circle on any leg that has a PDF attached to preview the document in-app.
 
 ### Flights (Transport)
-Lists all transport legs. Supported types: **Flight, Train, Ferry, Bus, Car, Other** — each with its own emoji. Click **Add** to log a new leg — From, To, and Price are required. You can also attach a PDF (ticket, booking confirmation) to any leg; the emoji circle turns gold when a PDF is attached and opens a preview when clicked. Click the trash icon to remove a leg (it goes to Trash, not deleted permanently).
+Lists all transport legs. Supported types: **Flight, Train, Ferry, Bus, Car, Other** — each with its own emoji. Click **Add** to log a new leg — From, To, and Price are required. You can attach a PDF (ticket, booking confirmation) to any leg — after uploading it appears in a side panel next to the form so you can read it while filling in the details; the emoji circle turns gold when a PDF is attached and opens a preview when clicked. Click the trash icon to remove a leg (it goes to Trash, not deleted permanently).
 
 ### Stays
-Lists all accommodations. Add a stay with the hotel name, city, check-in/check-out dates, and the total price — the nightly rate and number of nights are calculated automatically from the dates. You can attach a PDF (booking confirmation) to each stay. Click the trash icon to remove.
+Lists all accommodations. Add a stay with the hotel name, city, check-in/check-out dates, and the total price — the nightly rate and number of nights are calculated automatically from the dates. You can attach a PDF (booking confirmation) to each stay — it appears in a side panel next to the form while you fill in the details. Click the trash icon to remove.
 
 ### Activities
 Activities grouped by city. Add an activity with a name, category (Culture, Food, Adventure, Shopping, Wellness, Nightlife), optional date, and price.
@@ -40,7 +40,7 @@ A full budget breakdown:
 - **Extra Expenses** section for anything that doesn't fit the other tabs — transport, insurance, shopping, etc. Each expense can have a "Paid by" person and a list of who it involves, and the app will calculate how much each person owes under **Who Pays Who**.
 
 ### Trash
-Anything you delete lands here first. You can **Restore** an item to bring it back, or **Delete** it permanently. Permanently deleted items are gone for good.
+Anything you delete lands here first, grouped by category (Flights, Stays, Activities, Expenses). You can **Restore** an item to bring it back, or **Delete** it permanently. Permanently deleted items are gone for good.
 
 ---
 
@@ -54,7 +54,9 @@ Your last-used currency pair is saved automatically and restored on next launch.
 
 ## PDF attachments
 
-Flights and Stays each have a PDF upload field in their Add forms. The file is saved locally in `data/pdfs/`. When a PDF is attached:
+Flights and Stays each have a PDF upload field in their Add forms. The file is saved locally in `data/pdfs/`. When a PDF is uploaded in the Add form, it appears immediately in a side panel next to the form so you can refer to the document while entering details.
+
+Once saved, the PDF stays attached to the item:
 - The transport emoji circle gets a **gold border** — click it to preview the PDF inside the app.
 - The 📄 button appears on Stay cards — click it to preview.
 

@@ -141,8 +141,17 @@ const calcNights = (ci, co, year) => {
   return Math.round((d2 - d1) / 86400000);
 };
 
-let _nextId = 60;
-const uid = () => ++_nextId;
+const uid = () => {
+  const d = new Date();
+  return Number(
+    `${d.getFullYear()}` +
+    `${String(d.getMonth() + 1).padStart(2, "0")}` +
+    `${String(d.getDate()).padStart(2, "0")}` +
+    `${String(d.getHours()).padStart(2, "0")}` +
+    `${String(d.getMinutes()).padStart(2, "0")}` +
+    `${String(d.getSeconds()).padStart(2, "0")}`
+  );
+};
 
 const api = {
   post: (r, body) =>
@@ -373,7 +382,7 @@ const CityBadge = ({ city }) => {
   );
 };
 
-const AddForm = ({ open, onCancel, onSave, saveLabel, children }) =>
+const AddForm = ({ open, onCancel, onSave, saveLabel, children, pdfSide }) =>
   !open ? null : (
     <div
       style={{
@@ -389,12 +398,25 @@ const AddForm = ({ open, onCancel, onSave, saveLabel, children }) =>
       >
         {saveLabel}
       </div>
-      {children}
-      <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-        <Btn variant="gold" onClick={onSave}>
-          {saveLabel}
-        </Btn>
-        <Btn onClick={onCancel}>Cancel</Btn>
+      <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {children}
+          <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+            <Btn variant="gold" onClick={onSave}>
+              {saveLabel}
+            </Btn>
+            <Btn onClick={onCancel}>Cancel</Btn>
+          </div>
+        </div>
+        {pdfSide && (
+          <div style={{ width: 300, flexShrink: 0, border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden" }}>
+            <iframe
+              src={`/pdfs/${pdfSide}`}
+              style={{ width: "100%", height: 440, border: "none", display: "block" }}
+              title="PDF Preview"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -540,6 +562,8 @@ export default function VacationPlanner() {
   const [addS, setAddS] = useState(false);
   const [addA, setAddA] = useState(false);
   const [addM, setAddM] = useState(false);
+  const [flightPdfSide, setFlightPdfSide] = useState(null);
+  const [stayPdfSide, setStayPdfSide] = useState(null);
 
   const [nf, setNf] = useState({
     type: "Flight",
@@ -748,6 +772,28 @@ export default function VacationPlanner() {
     if (data.filename) set((p) => ({ ...p, pdf: data.filename }));
   };
 
+  const uploadFlightPdf = async (file) => {
+    if (!file) return;
+    const form = new FormData();
+    form.append("pdf", file);
+    const res = await fetch("/api/upload", { method: "POST", body: form });
+    const { filename } = await res.json();
+    if (!filename) return;
+    setNf((p) => ({ ...p, pdf: filename }));
+    setFlightPdfSide(filename);
+  };
+
+  const uploadStayPdf = async (file) => {
+    if (!file) return;
+    const form = new FormData();
+    form.append("pdf", file);
+    const res = await fetch("/api/upload", { method: "POST", body: form });
+    const { filename } = await res.json();
+    if (!filename) return;
+    setNs((p) => ({ ...p, pdf: filename }));
+    setStayPdfSide(filename);
+  };
+
   const doAddFlight = () => {
     if (!nf.from || !nf.to || !nf.price) return;
     const item = { ...nf, id: uid(), price: +nf.price, deleted: false };
@@ -764,6 +810,7 @@ export default function VacationPlanner() {
       price: "",
       pdf: "",
     });
+    setFlightPdfSide(null);
     setAddF(false);
   };
   const doAddStay = () => {
@@ -790,6 +837,7 @@ export default function VacationPlanner() {
       totalPrice: "",
       pdf: "",
     });
+    setStayPdfSide(null);
     setAddS(false);
   };
   const doAddAct = () => {
@@ -1084,9 +1132,10 @@ export default function VacationPlanner() {
 
         <AddForm
           open={addF}
-          onCancel={() => setAddF(false)}
+          onCancel={() => { setAddF(false); setFlightPdfSide(null); }}
           onSave={doAddFlight}
           saveLabel="Add Flight"
+          pdfSide={flightPdfSide}
         >
           <div
             style={{
@@ -1129,7 +1178,7 @@ export default function VacationPlanner() {
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <PdfInput
               value={nf.pdf}
-              onChange={(file) => uploadPdf(file, setNf)}
+              onChange={uploadFlightPdf}
             />
           </div>
         </AddForm>
@@ -1247,9 +1296,10 @@ export default function VacationPlanner() {
 
         <AddForm
           open={addS}
-          onCancel={() => setAddS(false)}
+          onCancel={() => { setAddS(false); setStayPdfSide(null); }}
           onSave={doAddStay}
           saveLabel="Add Stay"
+          pdfSide={stayPdfSide}
         >
           <div
             style={{
@@ -1284,7 +1334,7 @@ export default function VacationPlanner() {
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <PdfInput
               value={ns.pdf}
-              onChange={(file) => uploadPdf(file, setNs)}
+              onChange={uploadStayPdf}
             />
           </div>
         </AddForm>
@@ -2156,7 +2206,17 @@ export default function VacationPlanner() {
   };
 
   const renderTrash = () => {
-    const typeEmoji = { f: "✈️", s: "🏨", a: "🎭", m: "📦" };
+    const GROUPS = [
+      { key: "f", emoji: "✈️", label: "Flights" },
+      { key: "s", emoji: "🏨", label: "Stays" },
+      { key: "a", emoji: "🎭", label: "Activities" },
+      { key: "m", emoji: "📦", label: "Expenses" },
+    ];
+    const groups = GROUPS.map((g) => ({
+      ...g,
+      items: trash.filter((x) => x.type === g.key),
+    })).filter((g) => g.items.length > 0);
+
     return (
       <div>
         <div style={{ marginBottom: 22 }}>
@@ -2192,63 +2252,71 @@ export default function VacationPlanner() {
           </div>
         ) : (
           <div>
-            {trash.map((item) => (
-              <div
-                key={`${item.type}-${item.id}`}
-                style={{
-                  ...card,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 14,
-                  opacity: 0.85,
-                }}
-              >
-                <span style={{ fontSize: 22, flexShrink: 0 }}>
-                  {typeEmoji[item.type]}
-                </span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{ fontSize: 14, fontWeight: 500, color: "#64748b" }}
-                  >
-                    {item.label}
-                  </div>
-                  <div style={{ marginTop: 3 }}>
-                    <span
-                      style={{
-                        background: "#f1f5f9",
-                        color: "#94a3b8",
-                        borderRadius: 5,
-                        padding: "1px 7px",
-                        fontSize: 11,
-                        fontWeight: 700,
-                      }}
-                    >
-                      {item.tag}
-                    </span>
-                  </div>
-                </div>
-                {item.amt > 0 && (
+            {groups.map((group, gi) => (
+              <div key={group.key} style={{ marginBottom: gi < groups.length - 1 ? 24 : 0 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 10,
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>{group.emoji}</span>
                   <span
+                    style={{ fontSize: 13, fontWeight: 700, color: NAVY }}
+                  >
+                    {group.label}
+                  </span>
+                  <div
+                    style={{ flex: 1, height: 1, background: "#e2e8f0" }}
+                  />
+                  <span style={{ fontSize: 11, color: "#94a3b8" }}>
+                    {group.items.length}
+                  </span>
+                </div>
+                {group.items.map((item) => (
+                  <div
+                    key={`${item.type}-${item.id}`}
                     style={{
-                      fontFamily: "Georgia, serif",
-                      fontSize: 15,
-                      color: "#94a3b8",
-                      flexShrink: 0,
+                      ...card,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 14,
+                      opacity: 0.85,
                     }}
                   >
-                    {pc(item.amt)}
-                  </span>
-                )}
-                <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-                  <Btn variant="restore" onClick={() => restoreItem(item)}>
-                    <RotateCcw size={13} />
-                    Restore
-                  </Btn>
-                  <Btn variant="danger" onClick={() => permDelItem(item)}>
-                    <X size={13} />
-                    Delete
-                  </Btn>
-                </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{ fontSize: 14, fontWeight: 500, color: "#64748b" }}
+                      >
+                        {item.label}
+                      </div>
+                    </div>
+                    {item.amt > 0 && (
+                      <span
+                        style={{
+                          fontFamily: "Georgia, serif",
+                          fontSize: 15,
+                          color: "#94a3b8",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {pc(item.amt)}
+                      </span>
+                    )}
+                    <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                      <Btn variant="restore" onClick={() => restoreItem(item)}>
+                        <RotateCcw size={13} />
+                        Restore
+                      </Btn>
+                      <Btn variant="danger" onClick={() => permDelItem(item)}>
+                        <X size={13} />
+                        Delete
+                      </Btn>
+                    </div>
+                  </div>
+                ))}
               </div>
             ))}
 
