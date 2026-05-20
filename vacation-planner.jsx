@@ -145,11 +145,11 @@ const uid = () => {
   const d = new Date();
   return Number(
     `${d.getFullYear()}` +
-    `${String(d.getMonth() + 1).padStart(2, "0")}` +
-    `${String(d.getDate()).padStart(2, "0")}` +
-    `${String(d.getHours()).padStart(2, "0")}` +
-    `${String(d.getMinutes()).padStart(2, "0")}` +
-    `${String(d.getSeconds()).padStart(2, "0")}`
+      `${String(d.getMonth() + 1).padStart(2, "0")}` +
+      `${String(d.getDate()).padStart(2, "0")}` +
+      `${String(d.getHours()).padStart(2, "0")}` +
+      `${String(d.getMinutes()).padStart(2, "0")}` +
+      `${String(d.getSeconds()).padStart(2, "0")}`,
   );
 };
 
@@ -409,10 +409,23 @@ const AddForm = ({ open, onCancel, onSave, saveLabel, children, pdfSide }) =>
           </div>
         </div>
         {pdfSide && (
-          <div style={{ width: 300, flexShrink: 0, border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden" }}>
+          <div
+            style={{
+              width: 300,
+              flexShrink: 0,
+              border: "1px solid #e2e8f0",
+              borderRadius: 8,
+              overflow: "hidden",
+            }}
+          >
             <iframe
               src={`/pdfs/${pdfSide}`}
-              style={{ width: "100%", height: 440, border: "none", display: "block" }}
+              style={{
+                width: "100%",
+                height: 440,
+                border: "none",
+                display: "block",
+              }}
               title="PDF Preview"
             />
           </div>
@@ -571,6 +584,20 @@ export default function VacationPlanner() {
   const [flightPdfSide, setFlightPdfSide] = useState(null);
   const [stayPdfSide, setStayPdfSide] = useState(null);
 
+  const [packingData, setPackingData] = useState({
+    lists: [],
+    laundryCycle: 3,
+  });
+  const [activeListId, setActiveListId] = useState(null);
+  const [addingItem, setAddingItem] = useState(null);
+  const [newItemName, setNewItemName] = useState("");
+  const [addingSection, setAddingSection] = useState(false);
+  const [newSectionName, setNewSectionName] = useState("");
+  const [showNewList, setShowNewList] = useState(false);
+  const [newListName, setNewListName] = useState("");
+  const [collapsedSections, setCollapsedSections] = useState(new Set());
+  const [editingQty, setEditingQty] = useState(null);
+
   const [nf, setNf] = useState({
     type: "Flight",
     from: "",
@@ -631,6 +658,12 @@ export default function VacationPlanner() {
         if (d.fxC1) setFxC1(d.fxC1);
         if (d.fxC2) setFxC2(d.fxC2);
         fxSaveReady.current = true;
+      });
+    fetch("/api/packinglist")
+      .then((r) => r.json())
+      .then((d) => {
+        setPackingData(d);
+        if (d.lists?.length) setActiveListId(d.lists[0].id);
       });
   }, []);
 
@@ -715,7 +748,10 @@ export default function VacationPlanner() {
   };
   const saveBudget = () => {
     const val = +budgetInput;
-    if (!val || val <= 0) { setEditBudget(false); return; }
+    if (!val || val <= 0) {
+      setEditBudget(false);
+      return;
+    }
     setTrip((p) => ({ ...p, budget: val }));
     setTripForm((p) => ({ ...p, budget: val }));
     fetch("/api/trip", {
@@ -1061,11 +1097,7 @@ export default function VacationPlanner() {
                   }}
                 >
                   <div
-                    onClick={
-                      ev.pdf
-                        ? () => setPdfPreview(ev.pdf)
-                        : undefined
-                    }
+                    onClick={ev.pdf ? () => setPdfPreview(ev.pdf) : undefined}
                     title={ev.pdf ? ev.pdf.replace(/^\d+-/, "") : undefined}
                     style={{
                       width: 34,
@@ -1151,7 +1183,10 @@ export default function VacationPlanner() {
 
         <AddForm
           open={addF}
-          onCancel={() => { setAddF(false); setFlightPdfSide(null); }}
+          onCancel={() => {
+            setAddF(false);
+            setFlightPdfSide(null);
+          }}
           onSave={doAddFlight}
           saveLabel="Add Flight"
           pdfSide={flightPdfSide}
@@ -1195,10 +1230,7 @@ export default function VacationPlanner() {
             />
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <PdfInput
-              value={nf.pdf}
-              onChange={uploadFlightPdf}
-            />
+            <PdfInput value={nf.pdf} onChange={uploadFlightPdf} />
           </div>
         </AddForm>
 
@@ -1208,11 +1240,7 @@ export default function VacationPlanner() {
             style={{ ...card, display: "flex", alignItems: "center", gap: 14 }}
           >
             <div
-              onClick={
-                f.pdf
-                  ? () => setPdfPreview(f.pdf)
-                  : undefined
-              }
+              onClick={f.pdf ? () => setPdfPreview(f.pdf) : undefined}
               title={f.pdf ? f.pdf.replace(/^\d+-/, "") : undefined}
               style={{
                 width: 38,
@@ -1315,7 +1343,10 @@ export default function VacationPlanner() {
 
         <AddForm
           open={addS}
-          onCancel={() => { setAddS(false); setStayPdfSide(null); }}
+          onCancel={() => {
+            setAddS(false);
+            setStayPdfSide(null);
+          }}
           onSave={doAddStay}
           saveLabel="Add Stay"
           pdfSide={stayPdfSide}
@@ -1351,10 +1382,7 @@ export default function VacationPlanner() {
             />
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <PdfInput
-              value={ns.pdf}
-              onChange={uploadStayPdf}
-            />
+            <PdfInput value={ns.pdf} onChange={uploadStayPdf} />
           </div>
         </AddForm>
 
@@ -1701,8 +1729,8 @@ export default function VacationPlanner() {
               Spending Breakdown
             </h2>
             <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 3 }}>
-              Total: {pc(grand)} of {pc(BUDGET)}{" "}
-              budget · {Math.round((grand / BUDGET) * 100)}% used
+              Total: {pc(grand)} of {pc(BUDGET)} budget ·{" "}
+              {Math.round((grand / BUDGET) * 100)}% used
             </div>
           </div>
         </div>
@@ -1747,9 +1775,15 @@ export default function VacationPlanner() {
                 />
               ) : (
                 <span
-                  onClick={() => { setBudgetInput(BUDGET); setEditBudget(true); }}
+                  onClick={() => {
+                    setBudgetInput(BUDGET);
+                    setEditBudget(true);
+                  }}
                   title="Click to edit budget"
-                  style={{ cursor: "pointer", borderBottom: "1px dotted #94a3b8" }}
+                  style={{
+                    cursor: "pointer",
+                    borderBottom: "1px dotted #94a3b8",
+                  }}
                 >
                   {pc(BUDGET)}
                 </span>
@@ -2109,7 +2143,8 @@ export default function VacationPlanner() {
                           {m.involves.length > 1 && (
                             <span style={{ color: GOLD, fontWeight: 600 }}>
                               {" "}
-                              · {sym(fxC1)}{(m.price / m.involves.length).toFixed(0)}
+                              · {sym(fxC1)}
+                              {(m.price / m.involves.length).toFixed(0)}
                               /person
                             </span>
                           )}
@@ -2257,6 +2292,1020 @@ export default function VacationPlanner() {
     );
   };
 
+  const renderPackingList = () => {
+    const allLists = packingData.lists || [];
+    const laundryCycle = packingData.laundryCycle || 3;
+    const tripDaysNum = typeof tripDays === "number" ? tripDays : 7;
+    const activeList = allLists.find((l) => l.id === activeListId);
+
+    const savePacking = (newData) => {
+      setPackingData(newData);
+      fetch("/api/packinglist", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newData),
+      });
+    };
+
+    const CALC_OPTIONS = [
+      { value: "fixed", label: "Fixed qty" },
+      { value: "laundry", label: "per Laundry" },
+      { value: "destinations", label: "per Destination" },
+      { value: "flights", label: "per Flight" },
+      { value: "hotels", label: "per Stay" },
+      { value: "activities", label: "per Activity" },
+      { value: "people", label: "per Person" },
+    ];
+
+    const calcMultiplier = (calc) => {
+      switch (calc) {
+        case "laundry":
+          return Math.max(1, Math.ceil(tripDaysNum / laundryCycle));
+        case "destinations":
+          return cities.length;
+        case "flights":
+          return flights.filter((f) => !f.deleted).length;
+        case "hotels":
+          return stays.filter((s) => !s.deleted).length;
+        case "activities":
+          return acts.filter((a) => !a.deleted).length;
+        case "people":
+          return travelers.length;
+        default:
+          return 1;
+      }
+    };
+
+    const getQty = (item) => {
+      if (item.perDay)
+        return Math.max(1, Math.ceil(tripDaysNum / laundryCycle));
+      const base = item.qty || 1;
+      const calc = item.calc || "fixed";
+      return calc === "fixed" ? base : base * calcMultiplier(calc);
+    };
+
+    const updateItem = (listId, sectionId, itemId, changes) => {
+      savePacking({
+        ...packingData,
+        lists: allLists.map((list) =>
+          list.id !== listId
+            ? list
+            : {
+                ...list,
+                sections: list.sections.map((sec) =>
+                  sec.id !== sectionId
+                    ? sec
+                    : {
+                        ...sec,
+                        items: sec.items.map((item) =>
+                          item.id !== itemId ? item : { ...item, ...changes },
+                        ),
+                      },
+                ),
+              },
+        ),
+      });
+    };
+
+    const toggleItem = (listId, sectionId, itemId) => {
+      savePacking({
+        ...packingData,
+        lists: allLists.map((list) =>
+          list.id !== listId
+            ? list
+            : {
+                ...list,
+                sections: list.sections.map((sec) =>
+                  sec.id !== sectionId
+                    ? sec
+                    : {
+                        ...sec,
+                        items: sec.items.map((item) =>
+                          item.id !== itemId
+                            ? item
+                            : { ...item, checked: !item.checked },
+                        ),
+                      },
+                ),
+              },
+        ),
+      });
+    };
+
+    const resetList = (listId) => {
+      savePacking({
+        ...packingData,
+        lists: allLists.map((list) =>
+          list.id !== listId
+            ? list
+            : {
+                ...list,
+                sections: list.sections.map((sec) => ({
+                  ...sec,
+                  items: sec.items.map((item) => ({ ...item, checked: false })),
+                })),
+              },
+        ),
+      });
+    };
+
+    const addItem = (listId, sectionId) => {
+      if (!newItemName.trim()) return;
+      const newItem = {
+        id: `custom-${Date.now()}`,
+        name: newItemName.trim(),
+        qty: 1,
+        perDay: false,
+        checked: false,
+      };
+      savePacking({
+        ...packingData,
+        lists: allLists.map((list) =>
+          list.id !== listId
+            ? list
+            : {
+                ...list,
+                sections: list.sections.map((sec) =>
+                  sec.id !== sectionId
+                    ? sec
+                    : { ...sec, items: [...sec.items, newItem] },
+                ),
+              },
+        ),
+      });
+      setNewItemName("");
+      setAddingItem(null);
+    };
+
+    const deleteItem = (listId, sectionId, itemId) => {
+      savePacking({
+        ...packingData,
+        lists: allLists.map((list) =>
+          list.id !== listId
+            ? list
+            : {
+                ...list,
+                sections: list.sections.map((sec) =>
+                  sec.id !== sectionId
+                    ? sec
+                    : {
+                        ...sec,
+                        items: sec.items.filter((item) => item.id !== itemId),
+                      },
+                ),
+              },
+        ),
+      });
+    };
+
+    const addSection = (listId) => {
+      if (!newSectionName.trim()) return;
+      const ts = Date.now();
+      const newSec = {
+        id: `sec-${ts}`,
+        name: newSectionName.trim(),
+        icon: "📦",
+        items: [],
+      };
+      savePacking({
+        ...packingData,
+        lists: allLists.map((list) =>
+          list.id !== listId
+            ? list
+            : { ...list, sections: [...list.sections, newSec] },
+        ),
+      });
+      setNewSectionName("");
+      setAddingSection(false);
+    };
+
+    const deleteSection = (listId, sectionId) => {
+      savePacking({
+        ...packingData,
+        lists: allLists.map((list) =>
+          list.id !== listId
+            ? list
+            : {
+                ...list,
+                sections: list.sections.filter((sec) => sec.id !== sectionId),
+              },
+        ),
+      });
+    };
+
+    const createList = () => {
+      if (!newListName.trim()) return;
+      const ts = Date.now();
+      const newList = {
+        id: `list-${ts}`,
+        name: newListName.trim(),
+        builtIn: false,
+        icon: "📋",
+        sections: [
+          { id: `sec-docs-${ts}`, name: "Documents", icon: "📄", items: [] },
+          { id: `sec-cloth-${ts}`, name: "Clothing", icon: "👕", items: [] },
+          { id: `sec-toilet-${ts}`, name: "Toiletries", icon: "🧴", items: [] },
+          { id: `sec-gadgets-${ts}`, name: "Gadgets", icon: "📱", items: [] },
+          { id: `sec-other-${ts}`, name: "Other", icon: "📦", items: [] },
+        ],
+      };
+      const newData = { ...packingData, lists: [...allLists, newList] };
+      setActiveListId(newList.id);
+      savePacking(newData);
+      setNewListName("");
+      setShowNewList(false);
+    };
+
+    const deleteList = (listId) => {
+      const newLists = allLists.filter((l) => l.id !== listId);
+      if (activeListId === listId)
+        setActiveListId(newLists.length ? newLists[0].id : null);
+      savePacking({ ...packingData, lists: newLists });
+    };
+
+    const totalItems = activeList
+      ? activeList.sections.reduce((s, sec) => s + sec.items.length, 0)
+      : 0;
+    const checkedItems = activeList
+      ? activeList.sections.reduce(
+          (s, sec) => s + sec.items.filter((i) => i.checked).length,
+          0,
+        )
+      : 0;
+    const progressPct =
+      totalItems > 0 ? Math.round((checkedItems / totalItems) * 100) : 0;
+    const hasClothing = activeList?.sections.some((s) => s.name === "Clothing");
+
+    return (
+      <div>
+        <div style={{ marginBottom: 22 }}>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: 20,
+              fontFamily: "Georgia, serif",
+              fontWeight: "normal",
+              color: NAVY,
+            }}
+          >
+            Packing List
+          </h2>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#64748b" }}>
+            Keep track of what to pack for your trip
+          </p>
+        </div>
+
+        {/* List selector pills */}
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+            marginBottom: 20,
+            alignItems: "center",
+          }}
+        >
+          {allLists.map((list) => (
+            <button
+              key={list.id}
+              onClick={() => setActiveListId(list.id)}
+              style={{
+                padding: "6px 14px",
+                borderRadius: 20,
+                border: `1.5px solid ${activeListId === list.id ? GOLD : "#e2e8f0"}`,
+                background: activeListId === list.id ? "#fef9ef" : "white",
+                color: activeListId === list.id ? GOLD : "#475569",
+                fontWeight: activeListId === list.id ? 700 : 400,
+                cursor: "pointer",
+                fontSize: 13,
+                transition: "all 0.15s",
+              }}
+            >
+              {list.icon} {list.name}
+              {list.builtIn && (
+                <span style={{ fontSize: 10, color: "#94a3b8", marginLeft: 4 }}>
+                  ★
+                </span>
+              )}
+            </button>
+          ))}
+          <button
+            onClick={() => setShowNewList((v) => !v)}
+            style={{
+              padding: "6px 14px",
+              borderRadius: 20,
+              border: "1.5px dashed #e2e8f0",
+              background: "transparent",
+              color: "#94a3b8",
+              cursor: "pointer",
+              fontSize: 13,
+            }}
+          >
+            + New List
+          </button>
+        </div>
+
+        {/* New list form */}
+        {showNewList && (
+          <div
+            style={{
+              background: "white",
+              border: "1.5px dashed #c9913b",
+              borderRadius: 12,
+              padding: "14px 18px",
+              marginBottom: 18,
+              display: "flex",
+              gap: 10,
+              alignItems: "center",
+            }}
+          >
+            <input
+              placeholder="List name…"
+              value={newListName}
+              onChange={(e) => setNewListName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") createList();
+                if (e.key === "Escape") {
+                  setShowNewList(false);
+                  setNewListName("");
+                }
+              }}
+              autoFocus
+              style={{
+                flex: 1,
+                border: "1px solid #e2e8f0",
+                borderRadius: 8,
+                padding: "6px 12px",
+                fontSize: 14,
+                outline: "none",
+              }}
+            />
+            <Btn variant="gold" onClick={createList}>
+              Create
+            </Btn>
+            <Btn
+              variant="ghost"
+              onClick={() => {
+                setShowNewList(false);
+                setNewListName("");
+              }}
+            >
+              Cancel
+            </Btn>
+          </div>
+        )}
+
+        {/* Active list */}
+        {activeList && (
+          <div>
+            {/* List header card */}
+            <div
+              style={{
+                background: "white",
+                borderRadius: 12,
+                padding: "16px 20px",
+                marginBottom: 14,
+                border: "1px solid #e2e8f0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: 12,
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 17, fontWeight: 600, color: NAVY }}>
+                  {activeList.icon} {activeList.name}
+                  {activeList.builtIn && (
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: "#94a3b8",
+                        marginLeft: 8,
+                        fontWeight: 400,
+                      }}
+                    >
+                      Built-in template
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: 13, color: "#64748b", marginTop: 3 }}>
+                  {checkedItems} of {totalItems} items packed
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                {checkedItems > 0 && (
+                  <Btn variant="ghost" onClick={() => resetList(activeList.id)}>
+                    Reset All
+                  </Btn>
+                )}
+                {!activeList.builtIn && (
+                  <Btn
+                    variant="danger"
+                    onClick={() => deleteList(activeList.id)}
+                  >
+                    <Trash2 size={14} />
+                  </Btn>
+                )}
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            {totalItems > 0 && (
+              <div
+                style={{
+                  background: "white",
+                  borderRadius: 12,
+                  padding: "12px 20px",
+                  marginBottom: 14,
+                  border: "1px solid #e2e8f0",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 7,
+                  }}
+                >
+                  <span style={{ fontSize: 12, color: "#64748b" }}>
+                    Packing progress
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 700,
+                      color: progressPct === 100 ? "#059669" : GOLD,
+                    }}
+                  >
+                    {progressPct}%
+                  </span>
+                </div>
+                <div
+                  style={{
+                    height: 8,
+                    background: "#f1f5f9",
+                    borderRadius: 4,
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${progressPct}%`,
+                      background: progressPct === 100 ? "#059669" : GOLD,
+                      borderRadius: 4,
+                      transition: "width 0.3s",
+                    }}
+                  />
+                </div>
+                {progressPct === 100 && (
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: "#059669",
+                      marginTop: 8,
+                      textAlign: "center",
+                      fontWeight: 600,
+                    }}
+                  >
+                    ✓ All packed and ready to go!
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Clothing calculation note */}
+            {hasClothing && typeof tripDays === "number" && (
+              <div
+                style={{
+                  background: "#fffbf0",
+                  border: "1px solid #f5e4c3",
+                  borderRadius: 10,
+                  padding: "10px 16px",
+                  marginBottom: 14,
+                  fontSize: 13,
+                  color: "#92400e",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  flexWrap: "wrap",
+                }}
+              >
+                <span>
+                  👕 Clothing amounts calculated for{" "}
+                  <strong>{tripDays}-day trip</strong>
+                </span>
+                <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  · Laundry every
+                  <input
+                    type="number"
+                    min={1}
+                    max={30}
+                    value={laundryCycle}
+                    onChange={(e) => {
+                      const val = Math.max(
+                        1,
+                        Math.min(30, +e.target.value || 1),
+                      );
+                      savePacking({ ...packingData, laundryCycle: val });
+                    }}
+                    style={{
+                      width: 40,
+                      textAlign: "center",
+                      border: "1px solid #f5e4c3",
+                      borderRadius: 6,
+                      padding: "2px 4px",
+                      fontSize: 13,
+                      background: "white",
+                      color: "#92400e",
+                      outline: "none",
+                    }}
+                  />
+                  days ·{" "}
+                  <span style={{ color: GOLD, fontWeight: 600 }}>
+                    ★ = calculated per cycle
+                  </span>
+                </span>
+              </div>
+            )}
+
+            {/* Sections */}
+            {activeList.sections.map((section) => {
+              const totalSec = section.items.length;
+              const checkedSec = section.items.filter((i) => i.checked).length;
+              const isCollapsed = collapsedSections.has(section.id);
+              const isAddingHere = addingItem === section.id;
+
+              return (
+                <div
+                  key={section.id}
+                  style={{
+                    background: "white",
+                    borderRadius: 12,
+                    border: "1px solid #e2e8f0",
+                    marginBottom: 12,
+                    overflow: "hidden",
+                  }}
+                >
+                  {/* Section header */}
+                  <div
+                    onClick={() => {
+                      const next = new Set(collapsedSections);
+                      if (isCollapsed) next.delete(section.id);
+                      else next.add(section.id);
+                      setCollapsedSections(next);
+                    }}
+                    style={{
+                      padding: "12px 18px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      cursor: "pointer",
+                      borderBottom: isCollapsed ? "none" : "1px solid #f1f5f9",
+                      userSelect: "none",
+                      background:
+                        checkedSec === totalSec && totalSec > 0
+                          ? "#f0fdf4"
+                          : "white",
+                    }}
+                  >
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: 8 }}
+                    >
+                      <span style={{ fontSize: 16 }}>{section.icon}</span>
+                      <span
+                        style={{ fontWeight: 600, color: NAVY, fontSize: 14 }}
+                      >
+                        {section.name}
+                      </span>
+                      {totalSec > 0 && (
+                        <span
+                          style={{
+                            background:
+                              checkedSec === totalSec ? "#dcfce7" : "#f1f5f9",
+                            color:
+                              checkedSec === totalSec ? "#16a34a" : "#64748b",
+                            borderRadius: 10,
+                            padding: "1px 8px",
+                            fontSize: 11,
+                            fontWeight: 600,
+                          }}
+                        >
+                          {checkedSec}/{totalSec}
+                        </span>
+                      )}
+                    </div>
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: 8 }}
+                    >
+                      {!activeList.builtIn && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteSection(activeList.id, section.id);
+                          }}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            color: "#cbd5e1",
+                            padding: "2px 4px",
+                            borderRadius: 4,
+                            lineHeight: 1,
+                          }}
+                          title="Delete section"
+                        >
+                          <X size={13} />
+                        </button>
+                      )}
+                      <span style={{ color: "#94a3b8", fontSize: 11 }}>
+                        {isCollapsed ? "▶" : "▼"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Section items */}
+                  {!isCollapsed && (
+                    <div>
+                      {section.items.length === 0 && !isAddingHere && (
+                        <div
+                          style={{
+                            padding: "12px 18px",
+                            fontSize: 13,
+                            color: "#94a3b8",
+                            fontStyle: "italic",
+                          }}
+                        >
+                          No items yet
+                        </div>
+                      )}
+                      {section.items.map((item) => {
+                        const qty = getQty(item);
+                        return (
+                          <div
+                            key={item.id}
+                            style={{
+                              padding: "9px 18px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 10,
+                              borderBottom: "1px solid #f8fafc",
+                              background: item.checked ? "#f8fafc" : "white",
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={item.checked}
+                              onChange={() =>
+                                toggleItem(activeList.id, section.id, item.id)
+                              }
+                              style={{
+                                width: 16,
+                                height: 16,
+                                cursor: "pointer",
+                                accentColor: GOLD,
+                                flexShrink: 0,
+                              }}
+                            />
+                            <span
+                              style={{
+                                flex: 1,
+                                fontSize: 14,
+                                color: item.checked ? "#94a3b8" : NAVY,
+                                textDecoration: item.checked
+                                  ? "line-through"
+                                  : "none",
+                              }}
+                            >
+                              {item.name}
+                            </span>
+                            {activeList.builtIn ? (
+                              <span
+                                style={{
+                                  fontSize: 12,
+                                  color: item.perDay ? GOLD : "#94a3b8",
+                                  fontWeight: item.perDay ? 700 : 400,
+                                  minWidth: 32,
+                                  textAlign: "right",
+                                }}
+                              >
+                                ×{qty}
+                                {item.perDay ? "★" : ""}
+                              </span>
+                            ) : editingQty === item.id ? (
+                              <div
+                                onBlur={(e) => {
+                                  if (
+                                    !e.currentTarget.contains(e.relatedTarget)
+                                  )
+                                    setEditingQty(null);
+                                }}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 4,
+                                  flexShrink: 0,
+                                }}
+                              >
+                                <input
+                                  type="number"
+                                  min={1}
+                                  value={item.qty || 1}
+                                  autoFocus
+                                  onChange={(e) =>
+                                    updateItem(
+                                      activeList.id,
+                                      section.id,
+                                      item.id,
+                                      {
+                                        qty: Math.max(1, +e.target.value || 1),
+                                      },
+                                    )
+                                  }
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === "Escape")
+                                      setEditingQty(null);
+                                  }}
+                                  style={{
+                                    width: 36,
+                                    textAlign: "center",
+                                    border: `1px solid ${GOLD}`,
+                                    borderRadius: 6,
+                                    padding: "2px",
+                                    fontSize: 12,
+                                    outline: "none",
+                                    color: NAVY,
+                                  }}
+                                />
+                                <select
+                                  value={item.calc || "fixed"}
+                                  onChange={(e) =>
+                                    updateItem(
+                                      activeList.id,
+                                      section.id,
+                                      item.id,
+                                      { calc: e.target.value },
+                                    )
+                                  }
+                                  style={{
+                                    border: "1px solid #e2e8f0",
+                                    borderRadius: 6,
+                                    padding: "2px 4px",
+                                    fontSize: 11,
+                                    outline: "none",
+                                    background: "white",
+                                    color: "#475569",
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  {CALC_OPTIONS.map((o) => (
+                                    <option key={o.value} value={o.value}>
+                                      {o.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            ) : (
+                              <div
+                                onClick={() => setEditingQty(item.id)}
+                                title="Click to edit"
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 4,
+                                  flexShrink: 0,
+                                  cursor: "pointer",
+                                }}
+                              >
+                                {item.calc && item.calc !== "fixed" ? (
+                                  <span
+                                    style={{
+                                      fontSize: 12,
+                                      color: GOLD,
+                                      fontWeight: 700,
+                                    }}
+                                  >
+                                    ×{qty}
+                                  </span>
+                                ) : (
+                                  <span
+                                    style={{ fontSize: 12, color: "#94a3b8" }}
+                                  >
+                                    ×{qty}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            {!activeList.builtIn && (
+                              <button
+                                onClick={() =>
+                                  deleteItem(activeList.id, section.id, item.id)
+                                }
+                                style={{
+                                  background: "none",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  color: "#e2e8f0",
+                                  padding: "2px",
+                                  borderRadius: 4,
+                                  lineHeight: 1,
+                                }}
+                              >
+                                <X size={12} />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+
+                      {/* Add item (custom lists only) */}
+                      {!activeList.builtIn && (
+                        <div style={{ padding: "8px 18px" }}>
+                          {isAddingHere ? (
+                            <div
+                              style={{
+                                display: "flex",
+                                gap: 8,
+                                alignItems: "center",
+                              }}
+                            >
+                              <input
+                                placeholder="Item name…"
+                                value={newItemName}
+                                onChange={(e) => setNewItemName(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter")
+                                    addItem(activeList.id, section.id);
+                                  if (e.key === "Escape") {
+                                    setAddingItem(null);
+                                    setNewItemName("");
+                                  }
+                                }}
+                                autoFocus
+                                style={{
+                                  flex: 1,
+                                  border: "1px solid #e2e8f0",
+                                  borderRadius: 8,
+                                  padding: "5px 10px",
+                                  fontSize: 13,
+                                  outline: "none",
+                                }}
+                              />
+                              <Btn
+                                variant="gold"
+                                onClick={() =>
+                                  addItem(activeList.id, section.id)
+                                }
+                              >
+                                Add
+                              </Btn>
+                              <Btn
+                                variant="ghost"
+                                onClick={() => {
+                                  setAddingItem(null);
+                                  setNewItemName("");
+                                }}
+                              >
+                                <X size={12} />
+                              </Btn>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setAddingItem(section.id);
+                                setNewItemName("");
+                              }}
+                              style={{
+                                background: "none",
+                                border: "none",
+                                color: "#94a3b8",
+                                cursor: "pointer",
+                                fontSize: 12,
+                                padding: "2px 0",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 4,
+                              }}
+                            >
+                              <Plus size={12} /> Add item
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Add section (custom lists only) */}
+            {!activeList.builtIn && (
+              <div style={{ marginTop: 8 }}>
+                {addingSection ? (
+                  <div
+                    style={{
+                      background: "white",
+                      border: "1.5px dashed #c9913b",
+                      borderRadius: 12,
+                      padding: "12px 18px",
+                      display: "flex",
+                      gap: 10,
+                      alignItems: "center",
+                    }}
+                  >
+                    <input
+                      placeholder="Section name…"
+                      value={newSectionName}
+                      onChange={(e) => setNewSectionName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") addSection(activeList.id);
+                        if (e.key === "Escape") {
+                          setAddingSection(false);
+                          setNewSectionName("");
+                        }
+                      }}
+                      autoFocus
+                      style={{
+                        flex: 1,
+                        border: "1px solid #e2e8f0",
+                        borderRadius: 8,
+                        padding: "6px 12px",
+                        fontSize: 14,
+                        outline: "none",
+                      }}
+                    />
+                    <Btn
+                      variant="gold"
+                      onClick={() => addSection(activeList.id)}
+                    >
+                      Add Section
+                    </Btn>
+                    <Btn
+                      variant="ghost"
+                      onClick={() => {
+                        setAddingSection(false);
+                        setNewSectionName("");
+                      }}
+                    >
+                      Cancel
+                    </Btn>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setAddingSection(true);
+                      setNewSectionName("");
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "10px",
+                      border: "1.5px dashed #e2e8f0",
+                      borderRadius: 12,
+                      background: "transparent",
+                      color: "#94a3b8",
+                      cursor: "pointer",
+                      fontSize: 13,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <Plus size={14} /> Add Section
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!activeList && !showNewList && (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "60px 20px",
+              color: "#94a3b8",
+            }}
+          >
+            <div style={{ fontSize: 48, marginBottom: 16 }}>🎒</div>
+            <div style={{ fontSize: 16, marginBottom: 8, color: "#64748b" }}>
+              No list selected
+            </div>
+            <div style={{ fontSize: 13, marginBottom: 20 }}>
+              Choose a template above or create a custom list
+            </div>
+            <Btn variant="gold" onClick={() => setShowNewList(true)}>
+              Create a List
+            </Btn>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderTrash = () => {
     const GROUPS = [
       { key: "f", emoji: "✈️", label: "Flights" },
@@ -2305,7 +3354,10 @@ export default function VacationPlanner() {
         ) : (
           <div>
             {groups.map((group, gi) => (
-              <div key={group.key} style={{ marginBottom: gi < groups.length - 1 ? 24 : 0 }}>
+              <div
+                key={group.key}
+                style={{ marginBottom: gi < groups.length - 1 ? 24 : 0 }}
+              >
                 <div
                   style={{
                     display: "flex",
@@ -2315,14 +3367,10 @@ export default function VacationPlanner() {
                   }}
                 >
                   <span style={{ fontSize: 16 }}>{group.emoji}</span>
-                  <span
-                    style={{ fontSize: 13, fontWeight: 700, color: NAVY }}
-                  >
+                  <span style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>
                     {group.label}
                   </span>
-                  <div
-                    style={{ flex: 1, height: 1, background: "#e2e8f0" }}
-                  />
+                  <div style={{ flex: 1, height: 1, background: "#e2e8f0" }} />
                   <span style={{ fontSize: 11, color: "#94a3b8" }}>
                     {group.items.length}
                   </span>
@@ -2340,7 +3388,11 @@ export default function VacationPlanner() {
                   >
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div
-                        style={{ fontSize: 14, fontWeight: 500, color: "#64748b" }}
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 500,
+                          color: "#64748b",
+                        }}
                       >
                         {item.label}
                       </div>
@@ -2397,6 +3449,7 @@ export default function VacationPlanner() {
     { id: "stays", label: "Stays" },
     { id: "activities", label: "Activities" },
     { id: "expenses", label: "Expenses" },
+    { id: "packing", label: "Packing List" },
     { id: "trash", label: `Trash${trash.length ? ` (${trash.length})` : ""}` },
   ];
 
@@ -2709,7 +3762,11 @@ export default function VacationPlanner() {
                     {(tripForm.people ?? []).map((person, i) => (
                       <div
                         key={i}
-                        style={{ display: "flex", alignItems: "center", gap: 4 }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
                       >
                         <input
                           value={person}
@@ -2805,8 +3862,7 @@ export default function VacationPlanner() {
               {pc(grand)}
             </div>
             <div style={{ fontSize: 11, color: "#475569" }}>
-              of {pc(BUDGET)} budget ·{" "}
-              {Math.round((grand / BUDGET) * 100)}%
+              of {pc(BUDGET)} budget · {Math.round((grand / BUDGET) * 100)}%
             </div>
           </div>
         </div>
@@ -2863,6 +3919,7 @@ export default function VacationPlanner() {
         {tab === "stays" && renderStays()}
         {tab === "activities" && renderActivities()}
         {tab === "expenses" && renderExpenses()}
+        {tab === "packing" && renderPackingList()}
         {tab === "trash" && renderTrash()}
       </div>
 

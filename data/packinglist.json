@@ -1,0 +1,1486 @@
+{
+  "laundryCycle": 3,
+  "lists": [
+    {
+      "id": "beach",
+      "name": "Beach Vacation",
+      "builtIn": true,
+      "icon": "🏖️",
+      "sections": [
+        {
+          "id": "beach-docs",
+          "name": "Documents",
+          "icon": "📄",
+          "items": [
+            {
+              "id": "beach-docs-1",
+              "name": "Passport",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-docs-2",
+              "name": "Travel Insurance",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-docs-3",
+              "name": "Hotel Reservation",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-docs-4",
+              "name": "Flight Tickets",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-docs-5",
+              "name": "Travel Visa (if needed)",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "beach-cloth",
+          "name": "Clothing",
+          "icon": "👕",
+          "items": [
+            {
+              "id": "beach-cloth-1",
+              "name": "T-Shirts",
+              "qty": 1,
+              "perDay": true,
+              "checked": false
+            },
+            {
+              "id": "beach-cloth-2",
+              "name": "Shorts",
+              "qty": 3,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-cloth-3",
+              "name": "Swimwear",
+              "qty": 2,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-cloth-4",
+              "name": "Underwear",
+              "qty": 1,
+              "perDay": true,
+              "checked": false
+            },
+            {
+              "id": "beach-cloth-5",
+              "name": "Socks",
+              "qty": 1,
+              "perDay": true,
+              "checked": false
+            },
+            {
+              "id": "beach-cloth-6",
+              "name": "Pajamas",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-cloth-7",
+              "name": "Light Jacket",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-cloth-8",
+              "name": "Sandals",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-cloth-9",
+              "name": "Sneakers",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-cloth-10",
+              "name": "Sun Hat",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "beach-toilet",
+          "name": "Toiletries",
+          "icon": "🧴",
+          "items": [
+            {
+              "id": "beach-toilet-1",
+              "name": "Sunscreen SPF 50+",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-toilet-2",
+              "name": "After-sun Lotion",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-toilet-3",
+              "name": "Shampoo",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-toilet-4",
+              "name": "Body Wash",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-toilet-5",
+              "name": "Toothbrush",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-toilet-6",
+              "name": "Toothpaste",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-toilet-7",
+              "name": "Deodorant",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-toilet-8",
+              "name": "Razor",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-toilet-9",
+              "name": "Face Wash",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-toilet-10",
+              "name": "Lip Balm with SPF",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "beach-gadgets",
+          "name": "Gadgets",
+          "icon": "📱",
+          "items": [
+            {
+              "id": "beach-gadgets-1",
+              "name": "Phone",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-gadgets-2",
+              "name": "Phone Charger",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-gadgets-3",
+              "name": "Power Bank",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-gadgets-4",
+              "name": "Earphones / AirPods",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-gadgets-5",
+              "name": "Camera",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-gadgets-6",
+              "name": "Universal Adapter",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-gadgets-7",
+              "name": "E-reader",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "beach-essentials",
+          "name": "Beach Essentials",
+          "icon": "🌊",
+          "items": [
+            {
+              "id": "beach-ess-1",
+              "name": "Beach Towel",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-ess-2",
+              "name": "Beach Bag",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-ess-3",
+              "name": "Sunglasses",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-ess-4",
+              "name": "Flip Flops",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-ess-5",
+              "name": "Waterproof Phone Case",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-ess-6",
+              "name": "Reusable Water Bottle",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "beach-health",
+          "name": "Health & Meds",
+          "icon": "💊",
+          "items": [
+            {
+              "id": "beach-health-1",
+              "name": "Painkillers",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-health-2",
+              "name": "Antihistamines",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-health-3",
+              "name": "First Aid Kit",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-health-4",
+              "name": "Stomach Tablets",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "beach-health-5",
+              "name": "Hand Sanitizer",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "city",
+      "name": "City Trip",
+      "builtIn": true,
+      "icon": "🏙️",
+      "sections": [
+        {
+          "id": "city-docs",
+          "name": "Documents",
+          "icon": "📄",
+          "items": [
+            {
+              "id": "city-docs-1",
+              "name": "Passport",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-docs-2",
+              "name": "Travel Insurance",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-docs-3",
+              "name": "Hotel Reservation",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-docs-4",
+              "name": "Flight / Train Tickets",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-docs-5",
+              "name": "Museum / Attraction Passes",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "city-cloth",
+          "name": "Clothing",
+          "icon": "👕",
+          "items": [
+            {
+              "id": "city-cloth-1",
+              "name": "Shirts / Tops",
+              "qty": 1,
+              "perDay": true,
+              "checked": false
+            },
+            {
+              "id": "city-cloth-2",
+              "name": "Pants / Jeans",
+              "qty": 2,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-cloth-3",
+              "name": "Underwear",
+              "qty": 1,
+              "perDay": true,
+              "checked": false
+            },
+            {
+              "id": "city-cloth-4",
+              "name": "Socks",
+              "qty": 1,
+              "perDay": true,
+              "checked": false
+            },
+            {
+              "id": "city-cloth-5",
+              "name": "Pajamas",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-cloth-6",
+              "name": "Light Jacket",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-cloth-7",
+              "name": "Comfortable Sneakers",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-cloth-8",
+              "name": "Smart Shoes (for dinners)",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-cloth-9",
+              "name": "Belt",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "city-toilet",
+          "name": "Toiletries",
+          "icon": "🧴",
+          "items": [
+            {
+              "id": "city-toilet-1",
+              "name": "Shampoo",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-toilet-2",
+              "name": "Body Wash",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-toilet-3",
+              "name": "Toothbrush",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-toilet-4",
+              "name": "Toothpaste",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-toilet-5",
+              "name": "Deodorant",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-toilet-6",
+              "name": "Razor",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-toilet-7",
+              "name": "Face Wash",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-toilet-8",
+              "name": "Cologne / Perfume",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "city-gadgets",
+          "name": "Gadgets",
+          "icon": "📱",
+          "items": [
+            {
+              "id": "city-gadgets-1",
+              "name": "Phone",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-gadgets-2",
+              "name": "Phone Charger",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-gadgets-3",
+              "name": "Power Bank",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-gadgets-4",
+              "name": "Earphones / AirPods",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-gadgets-5",
+              "name": "Camera",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-gadgets-6",
+              "name": "Laptop",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-gadgets-7",
+              "name": "Laptop Charger",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-gadgets-8",
+              "name": "Universal Adapter",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "city-essentials",
+          "name": "City Essentials",
+          "icon": "🗺️",
+          "items": [
+            {
+              "id": "city-ess-1",
+              "name": "Daypack / Backpack",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-ess-2",
+              "name": "Umbrella",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-ess-3",
+              "name": "Reusable Water Bottle",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-ess-4",
+              "name": "City Map / Guidebook",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-ess-5",
+              "name": "Reusable Shopping Bag",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "city-health",
+          "name": "Health & Meds",
+          "icon": "💊",
+          "items": [
+            {
+              "id": "city-health-1",
+              "name": "Painkillers",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-health-2",
+              "name": "Antihistamines",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-health-3",
+              "name": "Blister Plasters (for walking)",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-health-4",
+              "name": "Hand Sanitizer",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "city-health-5",
+              "name": "First Aid Kit",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ski",
+      "name": "Winter / Ski",
+      "builtIn": true,
+      "icon": "⛷️",
+      "sections": [
+        {
+          "id": "ski-docs",
+          "name": "Documents",
+          "icon": "📄",
+          "items": [
+            {
+              "id": "ski-docs-1",
+              "name": "Passport",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-docs-2",
+              "name": "Travel Insurance (incl. winter sports)",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-docs-3",
+              "name": "Hotel Reservation",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-docs-4",
+              "name": "Flight Tickets",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-docs-5",
+              "name": "Ski Pass",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "ski-cloth",
+          "name": "Clothing",
+          "icon": "👕",
+          "items": [
+            {
+              "id": "ski-cloth-1",
+              "name": "Thermal Base Layer (top)",
+              "qty": 2,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-cloth-2",
+              "name": "Thermal Base Layer (bottom)",
+              "qty": 2,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-cloth-3",
+              "name": "Ski Jacket",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-cloth-4",
+              "name": "Ski Pants",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-cloth-5",
+              "name": "Warm Sweaters",
+              "qty": 2,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-cloth-6",
+              "name": "Casual Pants / Jeans",
+              "qty": 2,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-cloth-7",
+              "name": "Underwear",
+              "qty": 1,
+              "perDay": true,
+              "checked": false
+            },
+            {
+              "id": "ski-cloth-8",
+              "name": "Ski Socks",
+              "qty": 3,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-cloth-9",
+              "name": "Regular Socks",
+              "qty": 1,
+              "perDay": true,
+              "checked": false
+            },
+            {
+              "id": "ski-cloth-10",
+              "name": "Pajamas",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-cloth-11",
+              "name": "Beanie",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-cloth-12",
+              "name": "Scarf / Neck Gaiter",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-cloth-13",
+              "name": "Gloves",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-cloth-14",
+              "name": "Ski Boots",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-cloth-15",
+              "name": "Snow Boots / Après-ski Boots",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "ski-toilet",
+          "name": "Toiletries",
+          "icon": "🧴",
+          "items": [
+            {
+              "id": "ski-toilet-1",
+              "name": "Lip Balm with SPF",
+              "qty": 2,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-toilet-2",
+              "name": "Moisturizing Face Cream",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-toilet-3",
+              "name": "Sunscreen for Snow",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-toilet-4",
+              "name": "Shampoo",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-toilet-5",
+              "name": "Body Wash",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-toilet-6",
+              "name": "Toothbrush",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-toilet-7",
+              "name": "Toothpaste",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-toilet-8",
+              "name": "Deodorant",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-toilet-9",
+              "name": "Razor",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "ski-gadgets",
+          "name": "Gadgets",
+          "icon": "📱",
+          "items": [
+            {
+              "id": "ski-gadgets-1",
+              "name": "Phone",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-gadgets-2",
+              "name": "Phone Charger",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-gadgets-3",
+              "name": "Power Bank (extra capacity)",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-gadgets-4",
+              "name": "Camera with Spare Batteries",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-gadgets-5",
+              "name": "Universal Adapter",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-gadgets-6",
+              "name": "Earphones",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-gadgets-7",
+              "name": "GoPro / Action Camera",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "ski-gear",
+          "name": "Ski Gear",
+          "icon": "🎿",
+          "items": [
+            {
+              "id": "ski-gear-1",
+              "name": "Ski Goggles",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-gear-2",
+              "name": "Helmet",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-gear-3",
+              "name": "Ski Gloves (waterproof)",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-gear-4",
+              "name": "Sunglasses",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-gear-5",
+              "name": "Hand Warmers",
+              "qty": 4,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-gear-6",
+              "name": "Ski Lock",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "ski-health",
+          "name": "Health & Meds",
+          "icon": "💊",
+          "items": [
+            {
+              "id": "ski-health-1",
+              "name": "Painkillers",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-health-2",
+              "name": "Muscle Cream",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-health-3",
+              "name": "First Aid Kit",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-health-4",
+              "name": "Cold Medicine",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-health-5",
+              "name": "Motion Sickness Tablets",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-health-6",
+              "name": "Hand Sanitizer",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "ski-health-7",
+              "name": "Vitamins",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business",
+      "name": "Business Trip",
+      "builtIn": true,
+      "icon": "💼",
+      "sections": [
+        {
+          "id": "biz-docs",
+          "name": "Documents",
+          "icon": "📄",
+          "items": [
+            {
+              "id": "biz-docs-1",
+              "name": "Passport / ID",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-docs-2",
+              "name": "Business Cards",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-docs-3",
+              "name": "Hotel Confirmation",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-docs-4",
+              "name": "Flight Tickets",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-docs-5",
+              "name": "Meeting Materials",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-docs-6",
+              "name": "Expense Report Folder",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "biz-cloth",
+          "name": "Clothing",
+          "icon": "👕",
+          "items": [
+            {
+              "id": "biz-cloth-1",
+              "name": "Business Shirts",
+              "qty": 1,
+              "perDay": true,
+              "checked": false
+            },
+            {
+              "id": "biz-cloth-2",
+              "name": "Suit Jacket",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-cloth-3",
+              "name": "Dress Trousers",
+              "qty": 2,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-cloth-4",
+              "name": "Underwear",
+              "qty": 1,
+              "perDay": true,
+              "checked": false
+            },
+            {
+              "id": "biz-cloth-5",
+              "name": "Dress Socks",
+              "qty": 1,
+              "perDay": true,
+              "checked": false
+            },
+            {
+              "id": "biz-cloth-6",
+              "name": "Pajamas",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-cloth-7",
+              "name": "Formal Shoes",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-cloth-8",
+              "name": "Casual Shoes (for evenings)",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-cloth-9",
+              "name": "Belt",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-cloth-10",
+              "name": "Tie",
+              "qty": 2,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "biz-toilet",
+          "name": "Toiletries",
+          "icon": "🧴",
+          "items": [
+            {
+              "id": "biz-toilet-1",
+              "name": "Shampoo",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-toilet-2",
+              "name": "Body Wash",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-toilet-3",
+              "name": "Toothbrush",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-toilet-4",
+              "name": "Toothpaste",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-toilet-5",
+              "name": "Deodorant",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-toilet-6",
+              "name": "Razor",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-toilet-7",
+              "name": "Face Wash",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-toilet-8",
+              "name": "Cologne",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-toilet-9",
+              "name": "Hair Gel / Spray",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "biz-gadgets",
+          "name": "Gadgets",
+          "icon": "📱",
+          "items": [
+            {
+              "id": "biz-gadgets-1",
+              "name": "Laptop",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-gadgets-2",
+              "name": "Laptop Charger",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-gadgets-3",
+              "name": "Phone",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-gadgets-4",
+              "name": "Phone Charger",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-gadgets-5",
+              "name": "Power Bank",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-gadgets-6",
+              "name": "USB Hub",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-gadgets-7",
+              "name": "Presentation Clicker",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-gadgets-8",
+              "name": "Portable Hard Drive",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-gadgets-9",
+              "name": "Universal Adapter",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "biz-office",
+          "name": "Office Essentials",
+          "icon": "📎",
+          "items": [
+            {
+              "id": "biz-office-1",
+              "name": "Notebook",
+              "qty": 2,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-office-2",
+              "name": "Pens",
+              "qty": 3,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-office-3",
+              "name": "Portfolio / Folder",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-office-4",
+              "name": "USB Stick",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        },
+        {
+          "id": "biz-health",
+          "name": "Health & Meds",
+          "icon": "💊",
+          "items": [
+            {
+              "id": "biz-health-1",
+              "name": "Painkillers",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-health-2",
+              "name": "Antihistamines",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-health-3",
+              "name": "Eye Drops",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-health-4",
+              "name": "Hand Sanitizer",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            },
+            {
+              "id": "biz-health-5",
+              "name": "Vitamins",
+              "qty": 1,
+              "perDay": false,
+              "checked": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "list-1779315100427",
+      "name": "ilias",
+      "builtIn": false,
+      "icon": "📋",
+      "sections": [
+        {
+          "id": "sec-docs-1779315100427",
+          "name": "Documents",
+          "icon": "📄",
+          "items": [
+            {
+              "id": "custom-1779315495963",
+              "name": "czfgd",
+              "qty": 2,
+              "perDay": false,
+              "checked": false,
+              "calc": "laundry"
+            }
+          ]
+        },
+        {
+          "id": "sec-cloth-1779315100427",
+          "name": "Clothing",
+          "icon": "👕",
+          "items": [
+            {
+              "id": "custom-1779316407801",
+              "name": "hgf",
+              "qty": 17,
+              "perDay": false,
+              "checked": false,
+              "calc": "fixed"
+            }
+          ]
+        },
+        {
+          "id": "sec-toilet-1779315100427",
+          "name": "Toiletries",
+          "icon": "🧴",
+          "items": []
+        },
+        {
+          "id": "sec-gadgets-1779315100427",
+          "name": "Gadgets",
+          "icon": "📱",
+          "items": []
+        },
+        {
+          "id": "sec-other-1779315100427",
+          "name": "Other",
+          "icon": "📦",
+          "items": []
+        }
+      ]
+    }
+  ]
+}

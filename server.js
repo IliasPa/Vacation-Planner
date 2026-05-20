@@ -88,6 +88,22 @@ app.patch('/api/trip', (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// Packing list — complex nested object, saved as whole
+app.get('/api/packinglist', (_, res) => {
+  try {
+    const path = filePath('packinglist');
+    if (!existsSync(path)) return res.json({ lists: [], laundryCycle: 3 });
+    res.json(JSON.parse(readFileSync(path, 'utf8')));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/packinglist', (req, res) => {
+  try {
+    writeFileSync(filePath('packinglist'), JSON.stringify(req.body, null, 2));
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // Currency exchange — proxy to frankfurter.app (avoids browser CORS issues)
 app.get('/api/fx', async (req, res) => {
   const { from = 'USD', to = 'EUR' } = req.query;
