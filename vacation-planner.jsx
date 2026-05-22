@@ -9,6 +9,8 @@ import {
   Star,
   DollarSign,
   MapPin,
+  Compass,
+  Check,
 } from "lucide-react";
 
 const GOLD = "#c9913b";
@@ -113,6 +115,57 @@ const CURRENCY_SYMBOL = {
   THB: "฿",
 };
 const sym = (c) => CURRENCY_SYMBOL[c] || c;
+
+const CONTINENT_MAP = {
+  AF:"Africa",AX:"Europe",AL:"Europe",DZ:"Africa",AS:"Oceania",AD:"Europe",
+  AO:"Africa",AI:"North America",AQ:"Antarctica",AG:"North America",AR:"South America",
+  AM:"Asia",AW:"North America",AU:"Oceania",AT:"Europe",AZ:"Asia",BS:"North America",
+  BH:"Asia",BD:"Asia",BB:"North America",BY:"Europe",BE:"Europe",BZ:"North America",
+  BJ:"Africa",BM:"North America",BT:"Asia",BO:"South America",BQ:"North America",
+  BA:"Europe",BW:"Africa",BR:"South America",IO:"Asia",BN:"Asia",BG:"Europe",
+  BF:"Africa",BI:"Africa",CV:"Africa",KH:"Asia",CM:"Africa",CA:"North America",
+  KY:"North America",CF:"Africa",TD:"Africa",CL:"South America",CN:"Asia",CX:"Asia",
+  CC:"Asia",CO:"South America",KM:"Africa",CG:"Africa",CD:"Africa",CK:"Oceania",
+  CR:"North America",CI:"Africa",HR:"Europe",CU:"North America",CW:"North America",
+  CY:"Europe",CZ:"Europe",DK:"Europe",DJ:"Africa",DM:"North America",DO:"North America",
+  EC:"South America",EG:"Africa",SV:"North America",GQ:"Africa",ER:"Africa",
+  EE:"Europe",SZ:"Africa",ET:"Africa",FK:"South America",FO:"Europe",FJ:"Oceania",
+  FI:"Europe",FR:"Europe",GF:"South America",PF:"Oceania",TF:"Antarctica",GA:"Africa",
+  GM:"Africa",GE:"Asia",DE:"Europe",GH:"Africa",GI:"Europe",GR:"Europe",
+  GL:"North America",GD:"North America",GP:"North America",GU:"Oceania",
+  GT:"North America",GG:"Europe",GN:"Africa",GW:"Africa",GY:"South America",
+  HT:"North America",HM:"Antarctica",VA:"Europe",HN:"North America",HK:"Asia",
+  HU:"Europe",IS:"Europe",IN:"Asia",ID:"Asia",IR:"Asia",IQ:"Asia",IE:"Europe",
+  IM:"Europe",IL:"Asia",IT:"Europe",JM:"North America",JP:"Asia",JE:"Europe",
+  JO:"Asia",KZ:"Asia",KE:"Africa",KI:"Oceania",KP:"Asia",KR:"Asia",KW:"Asia",
+  KG:"Asia",LA:"Asia",LV:"Europe",LB:"Asia",LS:"Africa",LR:"Africa",LY:"Africa",
+  LI:"Europe",LT:"Europe",LU:"Europe",MO:"Asia",MG:"Africa",MW:"Africa",MY:"Asia",
+  MV:"Asia",ML:"Africa",MT:"Europe",MH:"Oceania",MQ:"North America",MR:"Africa",
+  MU:"Africa",YT:"Africa",MX:"North America",FM:"Oceania",MD:"Europe",MC:"Europe",
+  MN:"Asia",ME:"Europe",MS:"North America",MA:"Africa",MZ:"Africa",MM:"Asia",
+  NA:"Africa",NR:"Oceania",NP:"Asia",NL:"Europe",NC:"Oceania",NZ:"Oceania",
+  NI:"North America",NE:"Africa",NG:"Africa",NU:"Oceania",NF:"Oceania",MK:"Europe",
+  MP:"Oceania",NO:"Europe",OM:"Asia",PK:"Asia",PW:"Oceania",PS:"Asia",
+  PA:"North America",PG:"Oceania",PY:"South America",PE:"South America",PH:"Asia",
+  PN:"Oceania",PL:"Europe",PT:"Europe",PR:"North America",QA:"Asia",RE:"Africa",
+  RO:"Europe",RU:"Europe",RW:"Africa",BL:"North America",SH:"Africa",
+  KN:"North America",LC:"North America",MF:"North America",PM:"North America",
+  VC:"North America",WS:"Oceania",SM:"Europe",ST:"Africa",SA:"Asia",SN:"Africa",
+  RS:"Europe",SC:"Africa",SL:"Africa",SG:"Asia",SX:"North America",SK:"Europe",
+  SI:"Europe",SB:"Oceania",SO:"Africa",ZA:"Africa",GS:"Antarctica",SS:"Africa",
+  ES:"Europe",LK:"Asia",SD:"Africa",SR:"South America",SJ:"Europe",SE:"Europe",
+  CH:"Europe",SY:"Asia",TW:"Asia",TJ:"Asia",TZ:"Africa",TH:"Asia",TL:"Asia",
+  TG:"Africa",TK:"Oceania",TO:"Oceania",TT:"North America",TN:"Africa",TR:"Asia",
+  TM:"Asia",TC:"North America",TV:"Oceania",UG:"Africa",UA:"Europe",AE:"Asia",
+  GB:"Europe",US:"North America",UM:"Oceania",UY:"South America",UZ:"Asia",
+  VU:"Oceania",VE:"South America",VN:"Asia",VG:"North America",VI:"North America",
+  WF:"Oceania",EH:"Africa",YE:"Asia",ZM:"Africa",ZW:"Africa",
+};
+
+const NS_TAGS = [
+  "Beach","Mountains","City","Culture","Food","Adventure","History",
+  "Nature","Shopping","Wellness","Nightlife","Island","Desert","Architecture","Road Trip",
+];
 
 const MONTH_NUM = {
   Jan: 1,
@@ -598,6 +651,12 @@ export default function VacationPlanner() {
   const [collapsedSections, setCollapsedSections] = useState(new Set());
   const [editingQty, setEditingQty] = useState(null);
 
+  const [nextSpots, setNextSpots] = useState([]);
+  const [addNS, setAddNS] = useState(false);
+  const [nns, setNns] = useState({ name: "", country: "", continent: "", notes: "", visited: false, yearVisited: "", tags: [], lat: null, lon: null });
+  const [nnsGeoStatus, setNnsGeoStatus] = useState(null);
+  const geoTimerRef = useRef(null);
+
   const [nf, setNf] = useState({
     type: "Flight",
     from: "",
@@ -665,6 +724,9 @@ export default function VacationPlanner() {
         setPackingData(d);
         if (d.lists?.length) setActiveListId(d.lists[0].id);
       });
+    fetch("/api/nextspot")
+      .then((r) => r.json())
+      .then(setNextSpots);
   }, []);
 
   useEffect(() => {
@@ -687,6 +749,38 @@ export default function VacationPlanner() {
       body: JSON.stringify({ fxC1, fxC2 }),
     });
   }, [fxC1, fxC2]);
+
+  useEffect(() => {
+    if (!addNS || !nns.name.trim()) {
+      setNnsGeoStatus(null);
+      return;
+    }
+    clearTimeout(geoTimerRef.current);
+    geoTimerRef.current = setTimeout(async () => {
+      setNnsGeoStatus("loading");
+      try {
+        const q = [nns.name.trim(), nns.country.trim()].filter(Boolean).join(", ");
+        const r = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
+        const d = await r.json();
+        if (d.lat) {
+          const continent = CONTINENT_MAP[d.countryCode?.toUpperCase()] || null;
+          setNnsGeoStatus({ country: d.country, continent, lat: parseFloat(d.lat), lon: parseFloat(d.lon) });
+          setNns((p) => ({
+            ...p,
+            country: p.country.trim() ? p.country : (d.country || ""),
+            continent: continent || p.continent || "",
+            lat: parseFloat(d.lat),
+            lon: parseFloat(d.lon),
+          }));
+        } else {
+          setNnsGeoStatus("error");
+        }
+      } catch {
+        setNnsGeoStatus("error");
+      }
+    }, 600);
+    return () => clearTimeout(geoTimerRef.current);
+  }, [nns.name, addNS]);
 
   const softDel = (resource, set, id) => {
     set((p) => p.map((x) => (x.id === id ? { ...x, deleted: true } : x)));
@@ -3443,6 +3537,223 @@ export default function VacationPlanner() {
     );
   };
 
+  const renderNextSpot = () => {
+    const resetNns = () => {
+      setNns({ name: "", country: "", continent: "", notes: "", visited: false, yearVisited: "", tags: [], lat: null, lon: null });
+      setNnsGeoStatus(null);
+    };
+    const addSpot = () => {
+      if (!nns.name.trim()) return;
+      const item = {
+        id: Date.now(),
+        name: nns.name.trim(),
+        country: nns.country.trim(),
+        continent: nns.continent.trim(),
+        notes: nns.notes.trim(),
+        visited: nns.visited,
+        yearVisited: nns.visited && nns.yearVisited ? parseInt(nns.yearVisited) : null,
+        tags: nns.tags,
+        lat: nns.lat,
+        lon: nns.lon,
+      };
+      setNextSpots((p) => [...p, item]);
+      api.post("nextspot", item);
+      resetNns();
+      setAddNS(false);
+    };
+    const delSpot = (id) => {
+      setNextSpots((p) => p.filter((x) => x.id !== id));
+      api.del("nextspot", id);
+    };
+
+    // Stats
+    const countries = [...new Set(nextSpots.map((s) => s.country).filter(Boolean))];
+    const continents = [...new Set(nextSpots.map((s) => s.continent).filter(Boolean))];
+    const visitedSpots = nextSpots.filter((s) => s.visited);
+    const yearMap = {};
+    visitedSpots.forEach((s) => { if (s.yearVisited) yearMap[s.yearVisited] = (yearMap[s.yearVisited] || 0) + 1; });
+    const years = Object.entries(yearMap).sort(([a], [b]) => Number(a) - Number(b));
+    const maxYearCount = years.length ? Math.max(...years.map(([, c]) => c)) : 1;
+    const tagMap = {};
+    nextSpots.forEach((s) => (s.tags || []).forEach((t) => { tagMap[t] = (tagMap[t] || 0) + 1; }));
+    const topTags = Object.entries(tagMap).sort(([, a], [, b]) => b - a);
+
+    return (
+      <div>
+        {/* Header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 22 }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: 20, fontFamily: "Georgia, serif", fontWeight: "normal", color: NAVY }}>
+              Next Spot
+            </h2>
+            <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 3 }}>
+              Places you want to visit someday
+            </div>
+          </div>
+          <Btn variant="gold" onClick={() => setAddNS((v) => !v)}>
+            <Plus size={15} />
+            Add Place
+          </Btn>
+        </div>
+
+        {/* Stats Dashboard */}
+        {nextSpots.length > 0 && (
+          <div style={{ marginBottom: 22 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 14 }}>
+              {[
+                { value: nextSpots.length, label: "Places" },
+                { value: countries.length, label: "Countries" },
+                { value: continents.length, label: "Continents" },
+                { value: visitedSpots.length, label: "Visited" },
+              ].map(({ value, label }) => (
+                <div key={label} style={{ background: "white", borderRadius: 12, border: "1px solid #e8e4dc", padding: "14px 12px", textAlign: "center" }}>
+                  <div style={{ fontSize: 26, fontFamily: "Georgia, serif", color: NAVY, lineHeight: 1 }}>{value}</div>
+                  <div style={{ fontSize: 10, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700, marginTop: 4 }}>{label}</div>
+                </div>
+              ))}
+            </div>
+
+            {years.length > 0 && (
+              <div style={{ ...card, marginBottom: 10 }}>
+                <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12 }}>Visited By Year</div>
+                {years.map(([year, count]) => (
+                  <div key={year} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 7 }}>
+                    <div style={{ width: 38, fontSize: 12, color: "#64748b", flexShrink: 0, fontFamily: "Georgia, serif" }}>{year}</div>
+                    <div style={{ flex: 1, height: 14, background: "#f1f5f9", borderRadius: 7, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${(count / maxYearCount) * 100}%`, background: GOLD, borderRadius: 7, transition: "width 0.4s ease" }} />
+                    </div>
+                    <div style={{ width: 18, fontSize: 12, color: "#94a3b8", textAlign: "right", flexShrink: 0 }}>{count}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {topTags.length > 0 && (
+              <div style={{ ...card }}>
+                <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>Top Tags</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {topTags.map(([tag, count]) => (
+                    <span key={tag} style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 20, padding: "3px 10px", fontSize: 12, color: "#475569" }}>
+                      {tag}
+                      <span style={{ background: GOLD, color: "white", borderRadius: 10, padding: "0 5px", fontSize: 10, fontWeight: 700 }}>{count}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Add Form */}
+        {addNS && (
+          <div style={{ ...card, marginBottom: 18, background: "#fafaf8" }}>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
+              <div style={{ flex: 2, minWidth: 150 }}>
+                <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>Place *</div>
+                <input style={inp} placeholder="e.g. Kyoto" value={nns.name} onChange={(e) => setNns((p) => ({ ...p, name: e.target.value }))} onKeyDown={(e) => e.key === "Enter" && addSpot()} autoFocus />
+                {nnsGeoStatus === "loading" && (
+                  <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 4 }}>📍 Locating…</div>
+                )}
+                {nnsGeoStatus && nnsGeoStatus !== "loading" && nnsGeoStatus !== "error" && (
+                  <div style={{ fontSize: 11, color: "#059669", marginTop: 4 }}>
+                    ✓ {nnsGeoStatus.country}{nnsGeoStatus.continent ? ` · ${nnsGeoStatus.continent}` : ""}
+                  </div>
+                )}
+                {nnsGeoStatus === "error" && (
+                  <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 4 }}>Location not found — fill manually</div>
+                )}
+              </div>
+              <div style={{ flex: 1, minWidth: 120 }}>
+                <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>Country / Region</div>
+                <input style={inp} placeholder="e.g. Japan" value={nns.country} onChange={(e) => setNns((p) => ({ ...p, country: e.target.value }))} />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>Notes</div>
+              <input style={inp} placeholder="e.g. Cherry blossom season in April" value={nns.notes} onChange={(e) => setNns((p) => ({ ...p, notes: e.target.value }))} />
+            </div>
+
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>Tags</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                {NS_TAGS.map((tag) => (
+                  <button key={tag} type="button"
+                    onClick={() => setNns((p) => ({ ...p, tags: p.tags.includes(tag) ? p.tags.filter((t) => t !== tag) : [...p.tags, tag] }))}
+                    style={{ border: "none", borderRadius: 20, cursor: "pointer", fontSize: 12, padding: "4px 12px", fontFamily: "inherit", background: nns.tags.includes(tag) ? GOLD : "#f1f5f9", color: nns.tags.includes(tag) ? "white" : "#475569" }}>
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+              <button type="button" onClick={() => setNns((p) => ({ ...p, visited: !p.visited }))}
+                style={{ width: 38, height: 22, borderRadius: 11, border: "none", cursor: "pointer", background: nns.visited ? GOLD : "#e2e8f0", position: "relative", transition: "background 0.15s", padding: 0, flexShrink: 0 }}>
+                <span style={{ position: "absolute", top: 3, width: 16, height: 16, borderRadius: "50%", background: "white", transition: "left 0.15s", left: nns.visited ? 19 : 3 }} />
+              </button>
+              <span style={{ fontSize: 13, color: "#475569" }}>Already visited</span>
+              {nns.visited && (
+                <input style={{ ...inp, width: 90 }} type="number" placeholder="Year" value={nns.yearVisited}
+                  onChange={(e) => setNns((p) => ({ ...p, yearVisited: e.target.value }))} min="1900" max="2099" />
+              )}
+            </div>
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <Btn variant="gold" onClick={addSpot}>Save</Btn>
+              <Btn variant="default" onClick={() => { setAddNS(false); resetNns(); }}>Cancel</Btn>
+            </div>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {nextSpots.length === 0 && !addNS ? (
+          <div style={{ textAlign: "center", padding: "70px 0", color: "#94a3b8" }}>
+            <div style={{ fontSize: 40, marginBottom: 14, opacity: 0.3 }}>🌍</div>
+            <div style={{ fontSize: 16, fontFamily: "Georgia, serif" }}>No places saved yet</div>
+            <div style={{ fontSize: 13, marginTop: 6 }}>Add places you dream of visiting</div>
+          </div>
+        ) : (
+          <div>
+            {nextSpots.map((spot) => (
+              <div key={spot.id} style={{ ...card, display: "flex", alignItems: "flex-start", gap: 14 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: spot.visited ? "#d1fae5" : "#f0f9ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                  {spot.visited ? <Check size={18} color="#059669" /> : <Compass size={18} color="#2563eb" />}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 7, flexWrap: "wrap", marginBottom: 2 }}>
+                    <span style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{spot.name}</span>
+                    {spot.country && <span style={{ fontSize: 12, color: "#94a3b8" }}>{spot.country}</span>}
+                    {spot.continent && (
+                      <span style={{ fontSize: 11, color: "#64748b", background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 10, padding: "1px 7px" }}>{spot.continent}</span>
+                    )}
+                    {spot.visited && spot.yearVisited && (
+                      <span style={{ fontSize: 11, color: "#065f46", background: "#d1fae5", borderRadius: 10, padding: "1px 7px" }}>{spot.yearVisited}</span>
+                    )}
+                    {spot.visited && !spot.yearVisited && (
+                      <span style={{ fontSize: 11, color: "#065f46", background: "#d1fae5", borderRadius: 10, padding: "1px 7px" }}>Visited</span>
+                    )}
+                  </div>
+                  {spot.notes && <div style={{ fontSize: 12, color: "#64748b", marginTop: 1 }}>{spot.notes}</div>}
+                  {spot.tags?.length > 0 && (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 6 }}>
+                      {spot.tags.map((tag) => (
+                        <span key={tag} style={{ fontSize: 11, background: "#f1f5f9", color: "#475569", borderRadius: 20, padding: "2px 9px", border: "1px solid #e2e8f0" }}>{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <Btn variant="ghost" onClick={() => delSpot(spot.id)} style={{ flexShrink: 0, marginTop: -2 }}>
+                  <Trash2 size={14} />
+                </Btn>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const TABS = [
     { id: "overview", label: "Overview" },
     { id: "flights", label: "Flights" },
@@ -3451,6 +3762,7 @@ export default function VacationPlanner() {
     { id: "expenses", label: "Expenses" },
     { id: "packing", label: "Packing List" },
     { id: "trash", label: `Trash${trash.length ? ` (${trash.length})` : ""}` },
+    { id: "nextspot", label: "Next Spot" },
   ];
 
   return (
@@ -3921,6 +4233,7 @@ export default function VacationPlanner() {
         {tab === "expenses" && renderExpenses()}
         {tab === "packing" && renderPackingList()}
         {tab === "trash" && renderTrash()}
+        {tab === "nextspot" && renderNextSpot()}
       </div>
 
       {/* ─── PDF Preview Modal ─── */}

@@ -36,7 +36,7 @@ const readData = name => {
 const writeData = (name, data) =>
   writeFileSync(filePath(name), JSON.stringify(data, null, 2));
 
-const RESOURCES = ['flights', 'stays', 'activities', 'misc'];
+const RESOURCES = ['flights', 'stays', 'activities', 'misc', 'nextspot'];
 
 RESOURCES.forEach(r => {
   app.get(`/api/${r}`, (_, res) => {
@@ -102,6 +102,28 @@ app.put('/api/packinglist', (req, res) => {
     writeFileSync(filePath('packinglist'), JSON.stringify(req.body, null, 2));
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Geocode — proxy to Nominatim (avoids CORS, sets proper User-Agent per ToS)
+app.get('/api/geocode', async (req, res) => {
+  const { q = '' } = req.query;
+  if (!q.trim()) return res.json({});
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&addressdetails=1`;
+    const r = await fetch(url, { headers: { 'User-Agent': 'VacationPlanner/3.1 (personal-travel-app)' } });
+    const data = await r.json();
+    if (!data.length) return res.json({});
+    const top = data[0];
+    res.json({
+      lat: top.lat,
+      lon: top.lon,
+      country: top.address?.country || '',
+      countryCode: top.address?.country_code?.toUpperCase() || '',
+      displayName: top.display_name,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // Currency exchange — proxy to frankfurter.app (avoids browser CORS issues)

@@ -85,6 +85,27 @@ Calculated quantities appear in gold. Press Enter or click away to close the edi
 
 Anything you delete lands here first, grouped by category (Flights, Stays, Activities, Expenses). You can **Restore** an item to bring it back, or **Delete** it permanently. Permanently deleted items are gone for good.
 
+### Next Spot
+
+A personal wishlist and travel log for places beyond your current trip. Click **Add Place** to save a destination with:
+
+- **Place** — the name of the city, region, or attraction
+- **Country / Region** — auto-filled from geocoding as you type (powered by OpenStreetMap Nominatim); you can also fill it manually
+- **Notes** — any free-text reminder (best season, things to do, etc.)
+- **Tags** — toggle any combination of: Beach, Mountains, City, Culture, Food, Adventure, History, Nature, Shopping, Wellness, Nightlife, Island, Desert, Architecture, Road Trip
+- **Already visited** toggle — mark a place as visited and optionally record the year
+
+At the top of the tab a **stats dashboard** shows:
+
+| Stat | What it counts |
+| --- | --- |
+| Places | Total saved spots |
+| Countries | Unique countries across all spots |
+| Continents | Unique continents (derived from geocoding) |
+| Visited | Spots marked as visited |
+
+A **Visited By Year** bar chart and a **Top Tags** summary appear automatically once you have the relevant data. All spots are saved locally to `nextspot.json` — they are independent of the current trip and persist across trips.
+
 ---
 
 ## Currency conversion
@@ -134,11 +155,18 @@ All data is saved locally in the `data/` folder as JSON files. Nothing is sent a
 | `activities.json`  | Activities                                                    |
 | `misc.json`        | Extra expenses                                                |
 | `packinglist.json` | Packing lists (built-in checked state + all custom lists)     |
+| `nextspot.json`    | Saved places wishlist and travel log                          |
 | `pdfs/`            | Uploaded PDF files                                            |
 
 ---
 
 ## Changelog
+
+### v3.1
+
+- **Next Spot tab** — a persistent wishlist and travel log for places beyond the current trip; add destinations with name, country, notes, tags, and a visited toggle with optional year
+- **Auto-geocoding** — typing a place name triggers a live lookup via OpenStreetMap Nominatim; country is auto-filled and the continent is resolved automatically from the result
+- **Stats dashboard** — live counts for Places, Countries, Continents, and Visited; a Visited By Year bar chart and a Top Tags summary appear as data is added
 
 ### v3.0
 
