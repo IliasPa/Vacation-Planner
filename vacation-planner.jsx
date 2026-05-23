@@ -878,7 +878,7 @@ export default function VacationPlanner() {
   useEffect(() => {
     setFxLoading(true);
     setFxRate(null);
-    fetch(`https://api.frankfurter.app/latest?from=${fxC1}&to=${fxC2}`)
+    fetch(`https://open.er-api.com/v6/latest/${fxC1}`)
       .then((r) => r.json())
       .then((d) => {
         setFxRate(d.rates?.[fxC2] ?? null);
