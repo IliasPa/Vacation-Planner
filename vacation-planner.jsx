@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import {
   Trash2,
   RotateCcw,
@@ -11,6 +13,7 @@ import {
   MapPin,
   Compass,
   Check,
+  Pencil,
 } from "lucide-react";
 
 const GOLD = "#c9913b";
@@ -589,6 +592,101 @@ const DeleteBtn = ({ onClick }) => (
   </Btn>
 );
 
+const WorldMap = ({ nextSpots, onCountryClick }) => {
+  const containerRef = useRef(null);
+  const mapRef = useRef(null);
+  const geoLayerRef = useRef(null);
+  const nextSpotsRef = useRef(nextSpots);
+  const onClickRef = useRef(onCountryClick);
+
+  useEffect(() => { nextSpotsRef.current = nextSpots; }, [nextSpots]);
+  useEffect(() => { onClickRef.current = onCountryClick; }, [onCountryClick]);
+
+  const countryStyle = (feature) => {
+    const spots = nextSpotsRef.current.filter((s) => !s.deleted);
+    const iso2 = feature.properties["ISO3166-1-Alpha-2"] || "";
+    const name = (feature.properties["name"] || "").toLowerCase();
+    const matches = spots.filter((s) => {
+      const sc = (s.countryCode || "").toUpperCase();
+      const sn = (s.country || "").toLowerCase();
+      if (iso2 && sc && iso2.toUpperCase() === sc) return true;
+      return sn && sn === name;
+    });
+    const status = matches.length === 0 ? "none" : matches.some((s) => s.visited) ? "visited" : "wishlist";
+    return {
+      fillColor: status === "visited" ? "#059669" : status === "wishlist" ? "#7c3aed" : "#cbd5e1",
+      fillOpacity: status === "none" ? 0.55 : 0.8,
+      color: "#fff",
+      weight: 0.5,
+      opacity: 0.7,
+    };
+  };
+
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+    const map = L.map(containerRef.current, {
+      center: [20, 0],
+      zoom: 2,
+      zoomControl: true,
+      attributionControl: true,
+      scrollWheelZoom: false,
+      minZoom: 1,
+      maxZoom: 8,
+    });
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors",
+      maxZoom: 8,
+    }).addTo(map);
+    mapRef.current = map;
+
+    fetch("/countries.geojson")
+      .then((r) => r.json())
+      .then((data) => {
+        const layer = L.geoJSON(data, {
+          style: countryStyle,
+          onEachFeature: (feature, lyr) => {
+            lyr.on({
+              click: () => onClickRef.current(feature),
+              mouseover: (e) => {
+                e.target.setStyle({ weight: 2, color: "#c9913b", fillOpacity: 0.9 });
+                e.target.bringToFront();
+              },
+              mouseout: (e) => {
+                layer.resetStyle(e.target);
+              },
+            });
+          },
+        }).addTo(map);
+        geoLayerRef.current = layer;
+      })
+      .catch(() => {});
+    return () => {
+      map.remove();
+      mapRef.current = null;
+      geoLayerRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!geoLayerRef.current) return;
+    geoLayerRef.current.setStyle(countryStyle);
+  }, [nextSpots]);
+
+  return (
+    <div style={{ position: "relative", marginBottom: 22 }}>
+      <div ref={containerRef} style={{ height: 380, borderRadius: 12, overflow: "hidden", border: "1px solid #e8e4dc" }} />
+      <div style={{ display: "flex", gap: 14, marginTop: 8, justifyContent: "flex-end" }}>
+        {[{ color: "#059669", label: "Visited" }, { color: "#7c3aed", label: "Wishlist" }, { color: "#cbd5e1", label: "Not saved" }].map(({ color, label }) => (
+          <div key={label} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#64748b" }}>
+            <span style={{ width: 12, height: 12, borderRadius: 3, background: color, display: "inline-block", flexShrink: 0 }} />
+            {label}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export default function VacationPlanner() {
   const [tab, setTab] = useState("overview");
   const [flights, setFlights] = useState([]);
@@ -653,8 +751,11 @@ export default function VacationPlanner() {
 
   const [nextSpots, setNextSpots] = useState([]);
   const [addNS, setAddNS] = useState(false);
-  const [nns, setNns] = useState({ name: "", country: "", continent: "", notes: "", visited: false, yearVisited: "", tags: [], lat: null, lon: null });
+  const [nns, setNns] = useState({ name: "", country: "", countryCode: "", continent: "", notes: "", visited: false, yearVisited: "", tags: [], lat: null, lon: null });
   const [nnsGeoStatus, setNnsGeoStatus] = useState(null);
+  const [mapSidebar, setMapSidebar] = useState(null);
+  const [editingSpotId, setEditingSpotId] = useState(null);
+  const [editSpotData, setEditSpotData] = useState(null);
   const geoTimerRef = useRef(null);
 
   const [nf, setNf] = useState({
@@ -763,11 +864,13 @@ export default function VacationPlanner() {
         const r = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
         const d = await r.json();
         if (d.lat) {
-          const continent = CONTINENT_MAP[d.countryCode?.toUpperCase()] || null;
-          setNnsGeoStatus({ country: d.country, continent, lat: parseFloat(d.lat), lon: parseFloat(d.lon) });
+          const cc = d.countryCode?.toUpperCase() || "";
+          const continent = CONTINENT_MAP[cc] || null;
+          setNnsGeoStatus({ country: d.country, continent, countryCode: cc, lat: parseFloat(d.lat), lon: parseFloat(d.lon) });
           setNns((p) => ({
             ...p,
             country: p.country.trim() ? p.country : (d.country || ""),
+            countryCode: cc || p.countryCode || "",
             continent: continent || p.continent || "",
             lat: parseFloat(d.lat),
             lon: parseFloat(d.lon),
@@ -3539,7 +3642,7 @@ export default function VacationPlanner() {
 
   const renderNextSpot = () => {
     const resetNns = () => {
-      setNns({ name: "", country: "", continent: "", notes: "", visited: false, yearVisited: "", tags: [], lat: null, lon: null });
+      setNns({ name: "", country: "", countryCode: "", continent: "", notes: "", visited: false, yearVisited: "", tags: [], lat: null, lon: null });
       setNnsGeoStatus(null);
     };
     const addSpot = () => {
@@ -3548,6 +3651,7 @@ export default function VacationPlanner() {
         id: Date.now(),
         name: nns.name.trim(),
         country: nns.country.trim(),
+        countryCode: nns.countryCode || "",
         continent: nns.continent.trim(),
         notes: nns.notes.trim(),
         visited: nns.visited,
@@ -3584,7 +3688,7 @@ export default function VacationPlanner() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 22 }}>
           <div>
             <h2 style={{ margin: 0, fontSize: 20, fontFamily: "Georgia, serif", fontWeight: "normal", color: NAVY }}>
-              Next Spot
+              Next Stop
             </h2>
             <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 3 }}>
               Places you want to visit someday
@@ -3595,6 +3699,114 @@ export default function VacationPlanner() {
             Add Place
           </Btn>
         </div>
+
+        {/* World Map */}
+        {(() => {
+          const handleCountryClick = (feature) => {
+            const iso2 = feature.properties["ISO3166-1-Alpha-2"] || "";
+            const countryName = feature.properties["name"] || "";
+            const activeSpots = nextSpots.filter((s) => !s.deleted);
+            const spots = activeSpots.filter((s) => {
+              const sc = (s.countryCode || "").toUpperCase();
+              const sn = (s.country || "").toLowerCase();
+              if (iso2 && sc && iso2.toUpperCase() === sc) return true;
+              return sn && sn === countryName.toLowerCase();
+            });
+            const status = spots.length === 0 ? "none" : spots.some((s) => s.visited) ? "visited" : "wishlist";
+            setMapSidebar({ countryName, iso2, status, spots });
+          };
+
+          const quickAdd = (visited) => {
+            if (!mapSidebar) return;
+            const { countryName, iso2 } = mapSidebar;
+            const continent = CONTINENT_MAP[iso2] || "";
+            const item = {
+              id: Date.now(),
+              name: countryName,
+              country: countryName,
+              countryCode: iso2,
+              continent,
+              notes: "",
+              visited,
+              yearVisited: null,
+              tags: [],
+              lat: null,
+              lon: null,
+            };
+            setNextSpots((p) => [...p, item]);
+            api.post("nextspot", item);
+            setMapSidebar((prev) => {
+              const newSpots = [...(prev?.spots || []), item];
+              const newStatus = newSpots.some((s) => s.visited) ? "visited" : "wishlist";
+              return { ...prev, spots: newSpots, status: newStatus };
+            });
+          };
+
+          const statusColor = mapSidebar?.status === "visited" ? "#059669" : mapSidebar?.status === "wishlist" ? "#7c3aed" : "#94a3b8";
+          const statusLabel = mapSidebar?.status === "visited" ? "Visited" : mapSidebar?.status === "wishlist" ? "On Wishlist" : "Not saved";
+
+          return (
+            <div style={{ position: "relative", marginBottom: 22 }}>
+              <WorldMap nextSpots={nextSpots.filter((s) => !s.deleted)} onCountryClick={handleCountryClick} />
+              {mapSidebar && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    right: 0,
+                    width: 270,
+                    maxHeight: 380,
+                    background: "white",
+                    borderRadius: "0 12px 12px 0",
+                    boxShadow: "-4px 0 20px rgba(0,0,0,0.18)",
+                    zIndex: 1000,
+                    display: "flex",
+                    flexDirection: "column",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div style={{ padding: "14px 16px 10px", borderBottom: "1px solid #f1f5f9", flexShrink: 0 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: NAVY }}>{mapSidebar.countryName}</div>
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 4, background: mapSidebar.status === "visited" ? "#d1fae5" : mapSidebar.status === "wishlist" ? "#ede9fe" : "#f1f5f9", borderRadius: 20, padding: "2px 10px" }}>
+                          <span style={{ width: 7, height: 7, borderRadius: "50%", background: statusColor, flexShrink: 0 }} />
+                          <span style={{ fontSize: 11, fontWeight: 700, color: statusColor }}>{statusLabel}</span>
+                        </div>
+                      </div>
+                      <button onClick={() => setMapSidebar(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: 20, lineHeight: 1, padding: "0 2px", flexShrink: 0 }}>×</button>
+                    </div>
+                  </div>
+
+                  <div style={{ flex: 1, overflowY: "auto", padding: "10px 16px" }}>
+                    {mapSidebar.spots.length > 0 && (
+                      <div style={{ marginBottom: 10 }}>
+                        <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>Saved Places</div>
+                        {mapSidebar.spots.map((s) => (
+                          <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: "1px solid #f8fafc" }}>
+                            <span style={{ width: 8, height: 8, borderRadius: "50%", background: s.visited ? "#059669" : "#7c3aed", flexShrink: 0 }} />
+                            <span style={{ fontSize: 13, color: NAVY, flex: 1 }}>{s.name}</span>
+                            {s.visited && <span style={{ fontSize: 10, color: "#059669", fontWeight: 700 }}>✓</span>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>Quick Add</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <button onClick={() => quickAdd(false)} style={{ border: "1.5px solid #7c3aed", borderRadius: 8, cursor: "pointer", fontFamily: "inherit", fontSize: 12, padding: "7px 12px", background: "#f5f3ff", color: "#7c3aed", fontWeight: 600, textAlign: "left" }}>
+                        + Add to Wishlist
+                      </button>
+                      <button onClick={() => quickAdd(true)} style={{ border: "1.5px solid #059669", borderRadius: 8, cursor: "pointer", fontFamily: "inherit", fontSize: 12, padding: "7px 12px", background: "#f0fdf4", color: "#059669", fontWeight: 600, textAlign: "left" }}>
+                        ✓ Mark as Visited
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Stats Dashboard */}
         {nextSpots.length > 0 && (
@@ -3715,39 +3927,109 @@ export default function VacationPlanner() {
           </div>
         ) : (
           <div>
-            {nextSpots.map((spot) => (
-              <div key={spot.id} style={{ ...card, display: "flex", alignItems: "flex-start", gap: 14 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: spot.visited ? "#d1fae5" : "#f0f9ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
-                  {spot.visited ? <Check size={18} color="#059669" /> : <Compass size={18} color="#2563eb" />}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 7, flexWrap: "wrap", marginBottom: 2 }}>
-                    <span style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{spot.name}</span>
-                    {spot.country && <span style={{ fontSize: 12, color: "#94a3b8" }}>{spot.country}</span>}
-                    {spot.continent && (
-                      <span style={{ fontSize: 11, color: "#64748b", background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 10, padding: "1px 7px" }}>{spot.continent}</span>
-                    )}
-                    {spot.visited && spot.yearVisited && (
-                      <span style={{ fontSize: 11, color: "#065f46", background: "#d1fae5", borderRadius: 10, padding: "1px 7px" }}>{spot.yearVisited}</span>
-                    )}
-                    {spot.visited && !spot.yearVisited && (
-                      <span style={{ fontSize: 11, color: "#065f46", background: "#d1fae5", borderRadius: 10, padding: "1px 7px" }}>Visited</span>
+            {nextSpots.map((spot) => {
+              if (editingSpotId === spot.id && editSpotData) {
+                const ed = editSpotData;
+                const setEd = (fn) => setEditSpotData((p) => fn(p));
+                const saveSpot = () => {
+                  const updated = {
+                    ...ed,
+                    name: ed.name.trim(),
+                    country: (ed.country || "").trim(),
+                    notes: (ed.notes || "").trim(),
+                    yearVisited: ed.visited && ed.yearVisited ? parseInt(ed.yearVisited) : null,
+                  };
+                  setNextSpots((p) => p.map((s) => s.id === updated.id ? updated : s));
+                  api.patch("nextspot", updated.id, updated);
+                  setEditingSpotId(null);
+                  setEditSpotData(null);
+                };
+                return (
+                  <div key={spot.id} style={{ ...card, background: "#fafaf8", border: "1.5px solid #c9913b44", marginBottom: 10 }}>
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
+                      <div style={{ flex: 2, minWidth: 150 }}>
+                        <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>Place</div>
+                        <input style={inp} value={ed.name} onChange={(e) => setEd((p) => ({ ...p, name: e.target.value }))} autoFocus />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 120 }}>
+                        <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>Country / Region</div>
+                        <input style={inp} value={ed.country || ""} onChange={(e) => setEd((p) => ({ ...p, country: e.target.value }))} />
+                      </div>
+                    </div>
+                    <div style={{ marginBottom: 10 }}>
+                      <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>Notes</div>
+                      <input style={inp} value={ed.notes || ""} onChange={(e) => setEd((p) => ({ ...p, notes: e.target.value }))} placeholder="Any reminder…" />
+                    </div>
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>Tags</div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                        {NS_TAGS.map((tag) => (
+                          <button key={tag} type="button"
+                            onClick={() => setEd((p) => ({ ...p, tags: (p.tags || []).includes(tag) ? p.tags.filter((t) => t !== tag) : [...(p.tags || []), tag] }))}
+                            style={{ border: "none", borderRadius: 20, cursor: "pointer", fontSize: 12, padding: "4px 12px", fontFamily: "inherit", background: (ed.tags || []).includes(tag) ? GOLD : "#f1f5f9", color: (ed.tags || []).includes(tag) ? "white" : "#475569" }}>
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                      <button type="button" onClick={() => setEd((p) => ({ ...p, visited: !p.visited }))}
+                        style={{ width: 38, height: 22, borderRadius: 11, border: "none", cursor: "pointer", background: ed.visited ? GOLD : "#e2e8f0", position: "relative", transition: "background 0.15s", padding: 0, flexShrink: 0 }}>
+                        <span style={{ position: "absolute", top: 3, width: 16, height: 16, borderRadius: "50%", background: "white", transition: "left 0.15s", left: ed.visited ? 19 : 3 }} />
+                      </button>
+                      <span style={{ fontSize: 13, color: "#475569" }}>Already visited</span>
+                      {ed.visited && (
+                        <input style={{ ...inp, width: 90 }} type="number" placeholder="Year" value={ed.yearVisited || ""}
+                          onChange={(e) => setEd((p) => ({ ...p, yearVisited: e.target.value }))} min="1900" max="2099" />
+                      )}
+                    </div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <Btn variant="gold" onClick={saveSpot}>Save</Btn>
+                      <Btn variant="default" onClick={() => { setEditingSpotId(null); setEditSpotData(null); }}>Cancel</Btn>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div key={spot.id} style={{ ...card, display: "flex", alignItems: "flex-start", gap: 14 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: spot.visited ? "#d1fae5" : "#f0f9ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                    {spot.visited ? <Check size={18} color="#059669" /> : <Compass size={18} color="#2563eb" />}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 7, flexWrap: "wrap", marginBottom: 2 }}>
+                      <span style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{spot.name}</span>
+                      {spot.country && <span style={{ fontSize: 12, color: "#94a3b8" }}>{spot.country}</span>}
+                      {spot.continent && (
+                        <span style={{ fontSize: 11, color: "#64748b", background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 10, padding: "1px 7px" }}>{spot.continent}</span>
+                      )}
+                      {spot.visited && spot.yearVisited && (
+                        <span style={{ fontSize: 11, color: "#065f46", background: "#d1fae5", borderRadius: 10, padding: "1px 7px" }}>{spot.yearVisited}</span>
+                      )}
+                      {spot.visited && !spot.yearVisited && (
+                        <span style={{ fontSize: 11, color: "#065f46", background: "#d1fae5", borderRadius: 10, padding: "1px 7px" }}>Visited</span>
+                      )}
+                    </div>
+                    {spot.notes && <div style={{ fontSize: 12, color: "#64748b", marginTop: 1 }}>{spot.notes}</div>}
+                    {spot.tags?.length > 0 && (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 6 }}>
+                        {spot.tags.map((tag) => (
+                          <span key={tag} style={{ fontSize: 11, background: "#f1f5f9", color: "#475569", borderRadius: 20, padding: "2px 9px", border: "1px solid #e2e8f0" }}>{tag}</span>
+                        ))}
+                      </div>
                     )}
                   </div>
-                  {spot.notes && <div style={{ fontSize: 12, color: "#64748b", marginTop: 1 }}>{spot.notes}</div>}
-                  {spot.tags?.length > 0 && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 6 }}>
-                      {spot.tags.map((tag) => (
-                        <span key={tag} style={{ fontSize: 11, background: "#f1f5f9", color: "#475569", borderRadius: 20, padding: "2px 9px", border: "1px solid #e2e8f0" }}>{tag}</span>
-                      ))}
-                    </div>
-                  )}
+                  <div style={{ display: "flex", gap: 2, flexShrink: 0, marginTop: -2 }}>
+                    <Btn variant="ghost" onClick={() => { setEditingSpotId(spot.id); setEditSpotData({ ...spot }); }}>
+                      <Pencil size={13} />
+                    </Btn>
+                    <Btn variant="ghost" onClick={() => delSpot(spot.id)}>
+                      <Trash2 size={14} />
+                    </Btn>
+                  </div>
                 </div>
-                <Btn variant="ghost" onClick={() => delSpot(spot.id)} style={{ flexShrink: 0, marginTop: -2 }}>
-                  <Trash2 size={14} />
-                </Btn>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -3762,7 +4044,7 @@ export default function VacationPlanner() {
     { id: "expenses", label: "Expenses" },
     { id: "packing", label: "Packing List" },
     { id: "trash", label: `Trash${trash.length ? ` (${trash.length})` : ""}` },
-    { id: "nextspot", label: "Next Spot" },
+    { id: "nextspot", label: "Next Stop" },
   ];
 
   return (

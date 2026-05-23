@@ -85,15 +85,29 @@ Calculated quantities appear in gold. Press Enter or click away to close the edi
 
 Anything you delete lands here first, grouped by category (Flights, Stays, Activities, Expenses). You can **Restore** an item to bring it back, or **Delete** it permanently. Permanently deleted items are gone for good.
 
-### Next Spot
+### Next Stop
 
-A personal wishlist and travel log for places beyond your current trip. Click **Add Place** to save a destination with:
+A personal wishlist and travel log for places beyond your current trip, built around an interactive world map.
+
+**World map** — every country is colour-coded at a glance:
+
+| Colour | Meaning |
+| --- | --- |
+| Gray | Not on your list |
+| Purple | On your wishlist |
+| Green | Visited |
+
+Click any country on the map to open a sidebar showing all saved places for that country and two quick-action buttons: **Add to Wishlist** and **Mark as Visited**. Both save instantly to `nextspot.json`.
+
+**Add Place** — opens a form to save a destination with:
 
 - **Place** — the name of the city, region, or attraction
 - **Country / Region** — auto-filled from geocoding as you type (powered by OpenStreetMap Nominatim); you can also fill it manually
 - **Notes** — any free-text reminder (best season, things to do, etc.)
 - **Tags** — toggle any combination of: Beach, Mountains, City, Culture, Food, Adventure, History, Nature, Shopping, Wellness, Nightlife, Island, Desert, Architecture, Road Trip
 - **Already visited** toggle — mark a place as visited and optionally record the year
+
+Click the **pencil icon** on any saved place to edit all its fields inline. Changes are saved immediately.
 
 At the top of the tab a **stats dashboard** shows:
 
@@ -162,9 +176,15 @@ All data is saved locally in the `data/` folder as JSON files. Nothing is sent a
 
 ## Changelog
 
+### v3.2
+
+- **World map** — interactive Leaflet map on the Next Stop tab colours every country gray (not saved), purple (wishlist), or green (visited); click any country to open a sidebar with quick-add actions
+- **Inline editing** — click the pencil icon on any saved place to edit name, country, notes, tags, and visited status in-place; changes save immediately to `nextspot.json`
+- **Renamed to Next Stop** — tab previously called "Next Spot"
+
 ### v3.1
 
-- **Next Spot tab** — a persistent wishlist and travel log for places beyond the current trip; add destinations with name, country, notes, tags, and a visited toggle with optional year
+- **Next Stop tab** — a persistent wishlist and travel log for places beyond the current trip; add destinations with name, country, notes, tags, and a visited toggle with optional year
 - **Auto-geocoding** — typing a place name triggers a live lookup via OpenStreetMap Nominatim; country is auto-filled and the continent is resolved automatically from the result
 - **Stats dashboard** — live counts for Places, Countries, Continents, and Visited; a Visited By Year bar chart and a Top Tags summary appear as data is added
 
