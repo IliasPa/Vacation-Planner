@@ -2,6 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import defaultFlights from "./data/flights.json";
+import defaultStays from "./data/stays.json";
+import defaultActs from "./data/activities.json";
+import defaultMisc from "./data/misc.json";
+import defaultNextspot from "./data/nextspot.json";
+import defaultPackinglist from "./data/packinglist.json";
+import defaultTrip from "./data/trip.json";
 import {
   Trash2,
   RotateCcw,
@@ -211,20 +218,26 @@ const uid = () => {
   );
 };
 
+const lsGet = (r) => {
+  try { return JSON.parse(localStorage.getItem(`vp_${r}`) || "null") ?? []; } catch { return []; }
+};
+const lsSet = (r, data) => {
+  try { localStorage.setItem(`vp_${r}`, JSON.stringify(data)); } catch {}
+};
+
 const api = {
-  post: (r, body) =>
-    fetch(`/api/${r}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }),
-  patch: (r, id, body) =>
-    fetch(`/api/${r}/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }),
-  del: (r, id) => fetch(`/api/${r}/${id}`, { method: "DELETE" }),
+  post: (r, body) => {
+    const items = lsGet(r);
+    items.push(body);
+    lsSet(r, items);
+  },
+  patch: (r, id, body) => {
+    const items = lsGet(r);
+    const idx = items.findIndex((x) => x.id === Number(id));
+    if (idx !== -1) items[idx] = { ...items[idx], ...body };
+    lsSet(r, items);
+  },
+  del: (r, id) => lsSet(r, lsGet(r).filter((x) => x.id !== Number(id))),
 };
 
 const CAT_COLOR = {
@@ -809,36 +822,23 @@ export default function VacationPlanner() {
   });
 
   useEffect(() => {
-    fetch("/api/flights")
-      .then((r) => r.json())
-      .then(setFlights);
-    fetch("/api/stays")
-      .then((r) => r.json())
-      .then(setStays);
-    fetch("/api/activities")
-      .then((r) => r.json())
-      .then(setActs);
-    fetch("/api/misc")
-      .then((r) => r.json())
-      .then(setMisc);
-    fetch("/api/trip")
-      .then((r) => r.json())
-      .then((d) => {
-        setTrip(d);
-        setTripForm(d);
-        if (d.fxC1) setFxC1(d.fxC1);
-        if (d.fxC2) setFxC2(d.fxC2);
-        fxSaveReady.current = true;
-      });
-    fetch("/api/packinglist")
-      .then((r) => r.json())
-      .then((d) => {
-        setPackingData(d);
-        if (d.lists?.length) setActiveListId(d.lists[0].id);
-      });
-    fetch("/api/nextspot")
-      .then((r) => r.json())
-      .then(setNextSpots);
+    const ls = (key, def) => {
+      try { return JSON.parse(localStorage.getItem(`vp_${key}`) || "null") ?? def; } catch { return def; }
+    };
+    setFlights(ls("flights", defaultFlights));
+    setStays(ls("stays", defaultStays));
+    setActs(ls("activities", defaultActs));
+    setMisc(ls("misc", defaultMisc));
+    const tripData = ls("trip", defaultTrip);
+    setTrip(tripData);
+    setTripForm(tripData);
+    if (tripData.fxC1) setFxC1(tripData.fxC1);
+    if (tripData.fxC2) setFxC2(tripData.fxC2);
+    fxSaveReady.current = true;
+    const packData = ls("packinglist", defaultPackinglist);
+    setPackingData(packData);
+    if (packData.lists?.length) setActiveListId(packData.lists[0].id);
+    setNextSpots(ls("nextspot", defaultNextspot));
   }, []);
 
   useEffect(() => {
@@ -873,7 +873,7 @@ export default function VacationPlanner() {
   useEffect(() => {
     setFxLoading(true);
     setFxRate(null);
-    fetch(`/api/fx?from=${fxC1}&to=${fxC2}`)
+    fetch(`https://api.frankfurter.app/latest?from=${fxC1}&to=${fxC2}`)
       .then((r) => r.json())
       .then((d) => {
         setFxRate(d.rates?.[fxC2] ?? null);
@@ -884,11 +884,10 @@ export default function VacationPlanner() {
 
   useEffect(() => {
     if (!fxSaveReady.current) return;
-    fetch("/api/trip", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fxC1, fxC2 }),
-    });
+    try {
+      const stored = JSON.parse(localStorage.getItem("vp_trip") || "null");
+      if (stored) lsSet("trip", { ...stored, fxC1, fxC2 });
+    } catch {}
   }, [fxC1, fxC2]);
 
   useEffect(() => {
@@ -901,10 +900,19 @@ export default function VacationPlanner() {
       setNnsGeoStatus("loading");
       try {
         const q = [nns.name.trim(), nns.country.trim()].filter(Boolean).join(", ");
-        const r = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
-        const d = await r.json();
-        if (d.lat) {
-          const cc = d.countryCode?.toUpperCase() || "";
+        const r = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&addressdetails=1`
+        );
+        const results = await r.json();
+        if (results.length) {
+          const top = results[0];
+          const d = {
+            lat: top.lat,
+            lon: top.lon,
+            country: top.address?.country || "",
+            countryCode: (top.address?.country_code || "").toUpperCase(),
+          };
+          const cc = d.countryCode;
           const continent = CONTINENT_MAP[cc] || null;
           setNnsGeoStatus({ country: d.country, continent, countryCode: cc, lat: parseFloat(d.lat), lon: parseFloat(d.lon) });
           setNns((p) => ({
@@ -976,11 +984,7 @@ export default function VacationPlanner() {
 
   const saveTrip = () => {
     setTrip(tripForm);
-    fetch("/api/trip", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(tripForm),
-    });
+    lsSet("trip", tripForm);
     setEditTrip(false);
   };
 
@@ -1003,8 +1007,8 @@ export default function VacationPlanner() {
     try {
       for (const resource of filesToPush) {
         const filePath = `${prefix}${fileMap[resource]}`;
-        const dataRes = await fetch(`/api/${resource}`);
-        const data = await dataRes.json();
+        const raw = localStorage.getItem(`vp_${resource}`);
+        const data = raw ? JSON.parse(raw) : [];
         const content = JSON.stringify(data, null, 2);
         const encoded = btoa(unescape(encodeURIComponent(content)));
         let sha;
@@ -1039,13 +1043,12 @@ export default function VacationPlanner() {
       setEditBudget(false);
       return;
     }
-    setTrip((p) => ({ ...p, budget: val }));
-    setTripForm((p) => ({ ...p, budget: val }));
-    fetch("/api/trip", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ budget: val }),
+    setTrip((p) => {
+      const updated = { ...p, budget: val };
+      lsSet("trip", updated);
+      return updated;
     });
+    setTripForm((p) => ({ ...p, budget: val }));
     setEditBudget(false);
   };
   const tripStartD = parseTripDate(trip.start, trip.year);
@@ -2587,11 +2590,7 @@ export default function VacationPlanner() {
 
     const savePacking = (newData) => {
       setPackingData(newData);
-      fetch("/api/packinglist", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newData),
-      });
+      lsSet("packinglist", newData);
     };
 
     const CALC_OPTIONS = [
