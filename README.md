@@ -4,22 +4,13 @@
 
 # Vacation Planner
 
-A personal trip planning app that runs locally in your browser. Track transport legs, accommodations, activities, and expenses across multiple destinations — with live currency conversion, PDF attachments, expense splitting for groups, and smart packing lists.
+A personal trip planning web app. Track transport legs, accommodations, activities, and expenses across multiple destinations — with live currency conversion, expense splitting for groups, smart packing lists, and a travel wishlist with an interactive world map.
 
 ---
 
 ## How to open it
 
-**Mac** — double-click `start.command`
-If macOS blocks it, right-click → Open → Open anyway. You only need to do this once.
-
-**Windows** — double-click `start.bat`
-
-Either way, a terminal window will open (leave it running) and the app will appear in your browser at `http://localhost:5173` after a few seconds.
-
-**Requirement:** [Node.js](https://nodejs.org) must be installed on the computer. Dependencies install automatically on first launch.
-
-To close the app, close the terminal window.
+Open the app in your browser. No installation or local server needed — it runs entirely in the browser and saves all data to **localStorage** automatically.
 
 ---
 
@@ -27,15 +18,15 @@ To close the app, close the terminal window.
 
 ### Overview
 
-A summary of the whole trip: total budget used, trip duration, number of destinations, and planned activities. Each city card shows its hotel, activity count, and estimated cost. At the bottom is a full itinerary timeline built automatically from your transport legs — click the emoji circle on any leg that has a PDF attached to preview the document in-app.
+A summary of the whole trip: total budget used, trip duration, number of destinations, and planned activities. Each city card shows its hotel, activity count, and estimated cost. At the bottom is a full itinerary timeline built automatically from your transport legs.
 
 ### Flights (Transport)
 
-Lists all transport legs. Supported types: **Flight, Train, Ferry, Bus, Car, Other** — each with its own emoji. Click **Add** to log a new leg — From, To, and Price are required. You can attach a PDF (ticket, booking confirmation) to any leg — after uploading it appears in a side panel next to the form so you can read it while filling in the details; the emoji circle turns gold when a PDF is attached and opens a preview when clicked. Click the trash icon to remove a leg (it goes to Trash, not deleted permanently).
+Lists all transport legs. Supported types: **Flight, Train, Ferry, Bus, Car, Other** — each with its own emoji. Click **Add** to log a new leg — From, To, and Price are required. Click the trash icon to remove a leg (it goes to Trash, not deleted permanently).
 
 ### Stays
 
-Lists all accommodations. Add a stay with the hotel name, city, check-in/check-out dates, and the total price — the nightly rate and number of nights are calculated automatically from the dates. You can attach a PDF (booking confirmation) to each stay — it appears in a side panel next to the form while you fill in the details. Click the trash icon to remove.
+Lists all accommodations. Add a stay with the hotel name, city, check-in/check-out dates, and the total price — the nightly rate and number of nights are calculated automatically from the dates.
 
 ### Activities
 
@@ -97,7 +88,7 @@ A personal wishlist and travel log for places beyond your current trip, built ar
 | Purple | On your wishlist |
 | Green | Visited |
 
-Click any country on the map to open a sidebar showing all saved places for that country and two quick-action buttons: **Add to Wishlist** and **Mark as Visited**. Both save instantly to `nextspot.json`.
+Click any country on the map to open a sidebar showing all saved places for that country and two quick-action buttons: **Add to Wishlist** and **Mark as Visited**.
 
 **Add Place** — opens a form to save a destination with:
 
@@ -107,7 +98,7 @@ Click any country on the map to open a sidebar showing all saved places for that
 - **Tags** — toggle any combination of: Beach, Mountains, City, Culture, Food, Adventure, History, Nature, Shopping, Wellness, Nightlife, Island, Desert, Architecture, Road Trip
 - **Already visited** toggle — mark a place as visited and optionally record the year
 
-Click the **pencil icon** on any saved place to edit all its fields inline. Changes are saved immediately.
+Click any saved place card to edit all its fields inline. Changes are saved immediately.
 
 At the top of the tab a **stats dashboard** shows:
 
@@ -118,28 +109,37 @@ At the top of the tab a **stats dashboard** shows:
 | Continents | Unique continents (derived from geocoding) |
 | Visited | Spots marked as visited |
 
-A **Visited By Year** bar chart and a **Top Tags** summary appear automatically once you have the relevant data. All spots are saved locally to `nextspot.json` — they are independent of the current trip and persist across trips.
+A **Visited By Year** bar chart and a **Top Tags** summary appear automatically once you have the relevant data.
 
 ---
 
 ## Currency conversion
 
-The header shows two currency dropdowns (primary → secondary) with a live exchange rate fetched from [frankfurter.app](https://www.frankfurter.app). Every price in the app is displayed in the primary currency, with the converted secondary amount shown in smaller grey text below it. If both currencies are the same, only one figure is shown.
+The header shows two currency dropdowns (primary → secondary) with a live exchange rate fetched from [open.er-api.com](https://open.er-api.com). Every price in the app is displayed in the primary currency, with the converted secondary amount shown in smaller grey text below it. If both currencies are the same, only one figure is shown.
 
-Your last-used currency pair is saved automatically and restored on next launch.
+Your last-used currency pair is saved automatically and restored on next open.
 
 ---
 
-## PDF attachments
+## GitHub sync
 
-Flights and Stays each have a PDF upload field in their Add forms. The file is saved locally in `data/pdfs/`. When a PDF is uploaded in the Add form, it appears immediately in a side panel next to the form so you can refer to the document while entering details.
+The **GitHub icon** at the far right of the tab bar lets you back up your data to a private GitHub repository.
 
-Once saved, the PDF stays attached to the item:
+- **Gray** — no token configured; click to set up
+- **Yellow** — unsaved changes; click to push only the files that changed
+- **Green** — everything is in sync
 
-- The transport emoji circle gets a **gold border** — click it to preview the PDF inside the app.
-- The 📄 button appears on Stay cards — click it to preview.
+**Setup** — click the gray icon and enter:
 
-PDFs open in a full-screen in-app overlay. Click anywhere outside the document or the × button to close.
+| Field | Example |
+| --- | --- |
+| Personal Access Token | `ghp_...` (needs `repo` scope) |
+| Repository Owner | your GitHub username |
+| Repository Name | `VacationPlanner_private` |
+| Branch | `main` |
+| Data Folder Path | `data/` |
+
+The token is stored only in your browser's localStorage and is never sent anywhere except directly to the GitHub API.
 
 ---
 
@@ -153,33 +153,41 @@ Click the pencil icon (✏️) next to the trip dates in the header to edit:
 - Cities — rename, remove, or add new ones (in order)
 - People — the group travelling; used to assign "Paid by" and "Involves" in expenses
 
-Click **Save** to apply changes. All edits are saved to `trip.json`.
+Click **Save** to apply changes.
 
 ---
 
 ## Data
 
-All data is saved locally in the `data/` folder as JSON files. Nothing is sent anywhere. If you want to reset everything, you can edit those files directly.
+All data is saved in **browser localStorage**. Nothing is sent to any server. To reset everything, open browser DevTools → Application → Local Storage and clear the `vp_*` keys.
 
-| File               | Contents                                                      |
-| ------------------ | ------------------------------------------------------------- |
-| `trip.json`        | Trip name, dates, cities, people, budget, saved currency pair |
-| `flights.json`     | Transport legs                                                |
-| `stays.json`       | Accommodations                                                |
-| `activities.json`  | Activities                                                    |
-| `misc.json`        | Extra expenses                                                |
-| `packinglist.json` | Packing lists (built-in checked state + all custom lists)     |
-| `nextspot.json`    | Saved places wishlist and travel log                          |
-| `pdfs/`            | Uploaded PDF files                                            |
+| Key | Contents |
+| --- | --- |
+| `vp_trip` | Trip name, dates, cities, people, budget, saved currency pair |
+| `vp_flights` | Transport legs |
+| `vp_stays` | Accommodations |
+| `vp_activities` | Activities |
+| `vp_misc` | Extra expenses |
+| `vp_packinglist` | Packing lists (checked state + all custom lists) |
+| `vp_nextspot` | Saved places wishlist and travel log |
+| `vp_github` | GitHub sync configuration (token, repo, branch) |
 
 ---
 
 ## Changelog
 
+### v4.0
+
+- **Static web app** — removed local server; the app now runs entirely in the browser with no installation required
+- **localStorage persistence** — all data stored in browser localStorage; seeded from bundled defaults on first visit
+- **GitHub sync** — a button at the far right of the tab bar pushes only changed data files to a GitHub repository; token stored locally, push goes directly from browser to GitHub API; yellow when changes are pending, green when synced
+- **Clickable Next Stop cards** — click anywhere on a place card to edit it inline; no longer requires the pencil icon
+- **Direct API calls** — currency rates fetched directly from open.er-api.com; geocoding directly from Nominatim; no proxy server needed
+
 ### v3.2
 
 - **World map** — interactive Leaflet map on the Next Stop tab colours every country gray (not saved), purple (wishlist), or green (visited); click any country to open a sidebar with quick-add actions
-- **Inline editing** — click the pencil icon on any saved place to edit name, country, notes, tags, and visited status in-place; changes save immediately to `nextspot.json`
+- **Inline editing** — click the pencil icon on any saved place to edit name, country, notes, tags, and visited status in-place; changes save immediately
 - **Renamed to Next Stop** — tab previously called "Next Spot"
 
 ### v3.1
@@ -190,28 +198,28 @@ All data is saved locally in the `data/` folder as JSON files. Nothing is sent a
 
 ### v3.0
 
-- **Packing List tab** — new tab between Expenses and Trash with four built-in templates (Beach Vacation, City Trip, Winter/Ski, Business Trip), each covering Documents, Clothing, Toiletries, Gadgets, a specialty section, and Health & Meds
+- **Packing List tab** — new tab with four built-in templates (Beach Vacation, City Trip, Winter/Ski, Business Trip), each covering Documents, Clothing, Toiletries, Gadgets, a specialty section, and Health & Meds
 - **Smart clothing calculation** — items marked ★ auto-calculate quantity based on trip length divided by a configurable laundry cycle; updates live as you change the interval
 - **Packing progress** — per-section counters and an overall progress bar that turns green when everything is checked; sections are collapsible
-- **Custom packing lists** — create blank lists with editable sections and items; each item has an inline qty editor with seven calculation modes (Fixed, per Laundry, per Destination, per Flight, per Stay, per Activity, per Person); calculated totals appear in gold
+- **Custom packing lists** — create blank lists with editable sections and items; each item has an inline qty editor with seven calculation modes
 
 ### v2.2
 
-- **People management** — add/rename/remove travellers in the header edit form (pencil icon); the list drives "Paid by" and "Involves" in the Expenses tab
-- **Editable budget** — click the budget number in the Expenses progress bar to edit it inline; saved immediately to `trip.json`
+- **People management** — add/rename/remove travellers in the header edit form; the list drives "Paid by" and "Involves" in the Expenses tab
+- **Editable budget** — click the budget number in the Expenses progress bar to edit it inline
 
 ### v2.1
 
-- **PDF side-panel preview** — when adding a Flight or Stay, the uploaded PDF appears in a side panel next to the form so you can read it while filling in details
-- **Grouped Trash** — deleted items are now grouped by category (Flights, Stays, Activities, Expenses) for easier navigation
+- **PDF side-panel preview** — when adding a Flight or Stay, the uploaded PDF appears in a side panel next to the form
+- **Grouped Trash** — deleted items are now grouped by category
 - **Timestamp-based IDs** — new items get stable, unique IDs derived from the current timestamp
 
 ### v2.0
 
 - **Transport types** — Flights tab expanded to support Train, Ferry, Bus, Car, and Other legs, each with its own emoji
-- **Live currency conversion** — two-currency header selector with real-time rates from frankfurter.app; converted amounts shown throughout the app
-- **PDF attachments** — attach PDFs to transport legs and stays; stored in `data/pdfs/`
-- **In-app PDF preview** — full-screen PDF overlay opened by clicking the gold-bordered emoji circle (transport) or the 📄 button (stays)
+- **Live currency conversion** — two-currency header selector with real-time rates; converted amounts shown throughout the app
+- **PDF attachments** — attach PDFs to transport legs and stays
+- **In-app PDF preview** — full-screen PDF overlay
 
 ### v1.1
 
