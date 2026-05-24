@@ -1442,7 +1442,7 @@
               "name": "czfgd",
               "qty": 1,
               "perDay": false,
-              "checked": false,
+              "checked": true,
               "calc": "fixed"
             }
           ]

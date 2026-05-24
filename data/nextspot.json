@@ -41,5 +41,61 @@
     "lat": 38.7065734,
     "lon": 20.6416779,
     "deleted": false
+  },
+  {
+    "id": 1779617631130,
+    "name": "Yala",
+    "country": "Thailand",
+    "countryCode": "TH",
+    "continent": "Asia",
+    "notes": "thud",
+    "visited": false,
+    "yearVisited": null,
+    "tags": [
+      "Mountains",
+      "City",
+      "Culture"
+    ],
+    "lat": 6.3344846,
+    "lon": 101.1409694
+  },
+  {
+    "id": 1779621219176,
+    "name": "Russia",
+    "country": "Russia",
+    "countryCode": "RU",
+    "continent": "Europe",
+    "notes": "",
+    "visited": false,
+    "yearVisited": null,
+    "tags": [],
+    "lat": null,
+    "lon": null
+  },
+  {
+    "id": 1779621610094,
+    "name": "Canada",
+    "country": "Canada",
+    "countryCode": "CA",
+    "continent": "North America",
+    "notes": "",
+    "visited": true,
+    "yearVisited": null,
+    "tags": [],
+    "lat": null,
+    "lon": null
+  },
+  {
+    "id": 1779622793659,
+    "name": "Australia",
+    "country": "Australia",
+    "countryCode": "AU",
+    "continent": "Oceania",
+    "notes": "",
+    "visited": true,
+    "yearVisited": null,
+    "tags": [],
+    "lat": null,
+    "lon": null
   }
 ]
