@@ -176,6 +176,14 @@ All data is saved in **browser localStorage**. Nothing is sent to any server. To
 
 ## Changelog
 
+### v4.1
+
+- **GitHub as source of truth** — on every launch the app fetches your data directly from GitHub (if a token is configured); localStorage is used only as a temporary cache between syncs
+- **Cross-device continuity** — configure the same GitHub token on any device and always start from the latest synced state
+- **Startup loading screen** — a brief loading spinner is shown while data is being fetched from GitHub before the app renders
+- **Clean reload on config change** — saving or removing a GitHub token triggers a full page reload so the app immediately re-fetches from the correct source
+- **No bundled data** — personal trip data is no longer embedded in the app bundle; a fresh install starts with empty defaults until GitHub data is loaded
+
 ### v4.0
 
 - **Static web app** — removed local server; the app now runs entirely in the browser with no installation required

@@ -2,13 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import defaultFlights from "./data/flights.json";
-import defaultStays from "./data/stays.json";
-import defaultActs from "./data/activities.json";
-import defaultMisc from "./data/misc.json";
-import defaultNextspot from "./data/nextspot.json";
-import defaultPackinglist from "./data/packinglist.json";
-import defaultTrip from "./data/trip.json";
 import {
   Trash2,
   RotateCcw,
@@ -216,6 +209,26 @@ const uid = () => {
       `${String(d.getMinutes()).padStart(2, "0")}` +
       `${String(d.getSeconds()).padStart(2, "0")}`,
   );
+};
+
+const EMPTY_DATA = {
+  flights: [],
+  stays: [],
+  activities: [],
+  misc: [],
+  nextspot: [],
+  packinglist: { lists: [], laundryCycle: 3 },
+  trip: {
+    name: "My Trip",
+    cities: ["City 1"],
+    people: ["Traveller 1"],
+    budget: 5000,
+    start: "",
+    end: "",
+    year: new Date().getFullYear(),
+    fxC1: "EUR",
+    fxC2: "USD",
+  },
 };
 
 const lsGet = (r) => {
@@ -780,6 +793,7 @@ export default function VacationPlanner() {
   const [githubSyncing, setGithubSyncing] = useState(false);
   const [showGithubModal, setShowGithubModal] = useState(false);
   const [githubForm, setGithubForm] = useState({ token: "", owner: "", repo: "", branch: "main", dataPath: "data/" });
+  const [appLoading, setAppLoading] = useState(true);
   const dataLoadedRef = useRef({});
 
   const [nf, setNf] = useState({
@@ -822,28 +836,77 @@ export default function VacationPlanner() {
   });
 
   useEffect(() => {
-    // Seed localStorage from bundled JSON on first visit so api.post/patch/del
-    // always reads a full dataset (not an empty array) when localStorage is blank.
-    const ls = (key, def) => {
-      const raw = localStorage.getItem(`vp_${key}`);
-      if (raw !== null) { try { return JSON.parse(raw); } catch {} }
-      try { localStorage.setItem(`vp_${key}`, JSON.stringify(def)); } catch {}
-      return def;
+    const loadData = async () => {
+      const cfg = (() => { try { return JSON.parse(localStorage.getItem("vp_github") || "null"); } catch { return null; } })();
+
+      const applyData = (key, data) => {
+        lsSet(key, data);
+        if (key === "flights") setFlights(data);
+        else if (key === "stays") setStays(data);
+        else if (key === "activities") setActs(data);
+        else if (key === "misc") setMisc(data);
+        else if (key === "nextspot") setNextSpots(data);
+        else if (key === "packinglist") {
+          setPackingData(data);
+          if (data.lists?.length) setActiveListId(data.lists[0].id);
+        } else if (key === "trip") {
+          setTrip(data);
+          setTripForm(data);
+          if (data.fxC1) setFxC1(data.fxC1);
+          if (data.fxC2) setFxC2(data.fxC2);
+          fxSaveReady.current = true;
+        }
+      };
+
+      const lsLoad = (key) => {
+        const raw = localStorage.getItem(`vp_${key}`);
+        if (raw !== null) { try { return JSON.parse(raw); } catch {} }
+        return null;
+      };
+
+      if (cfg?.token && cfg?.owner && cfg?.repo) {
+        const { token, owner, repo, branch, dataPath } = cfg;
+        const branchName = branch || "main";
+        const prefix = dataPath || "data/";
+        const fileMap = {
+          flights: "flights.json", stays: "stays.json", activities: "activities.json",
+          misc: "misc.json", nextspot: "nextspot.json", packinglist: "packinglist.json", trip: "trip.json",
+        };
+        const headers = { Authorization: `token ${token}`, Accept: "application/vnd.github.v3+json" };
+
+        let fetchedAny = false;
+        for (const [key, filename] of Object.entries(fileMap)) {
+          try {
+            const res = await fetch(
+              `https://api.github.com/repos/${owner}/${repo}/contents/${prefix}${filename}?ref=${branchName}`,
+              { headers }
+            );
+            if (res.ok) {
+              const json = await res.json();
+              const decoded = JSON.parse(decodeURIComponent(escape(atob(json.content.replace(/\n/g, "")))));
+              applyData(key, decoded);
+              fetchedAny = true;
+              continue;
+            }
+          } catch {}
+          // Fall back to localStorage or empty defaults for this key
+          const cached = lsLoad(key);
+          applyData(key, cached !== null ? cached : EMPTY_DATA[key]);
+        }
+        if (fetchedAny) setDirtyFiles(new Set());
+      } else {
+        // No GitHub config — load from localStorage or empty defaults
+        const keys = ["flights", "stays", "activities", "misc", "nextspot", "packinglist", "trip"];
+        for (const key of keys) {
+          const cached = lsLoad(key);
+          applyData(key, cached !== null ? cached : EMPTY_DATA[key]);
+        }
+      }
+
+      setAppLoading(false);
     };
-    setFlights(ls("flights", defaultFlights));
-    setStays(ls("stays", defaultStays));
-    setActs(ls("activities", defaultActs));
-    setMisc(ls("misc", defaultMisc));
-    const tripData = ls("trip", defaultTrip);
-    setTrip(tripData);
-    setTripForm(tripData);
-    if (tripData.fxC1) setFxC1(tripData.fxC1);
-    if (tripData.fxC2) setFxC2(tripData.fxC2);
-    fxSaveReady.current = true;
-    const packData = ls("packinglist", defaultPackinglist);
-    setPackingData(packData);
-    if (packData.lists?.length) setActiveListId(packData.lists[0].id);
-    setNextSpots(ls("nextspot", defaultNextspot));
+
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -4142,6 +4205,16 @@ export default function VacationPlanner() {
     { id: "nextspot", label: "Next Stop" },
   ];
 
+  if (appLoading) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#f5f2ec", gap: 16 }}>
+        <style>{`@keyframes vp-spin { to { transform: rotate(1turn) } }`}</style>
+        <Loader2 size={40} color={GOLD} style={{ animation: "vp-spin 1s linear infinite" }} />
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 16, color: NAVY, fontWeight: 600 }}>Loading your trip data…</div>
+      </div>
+    );
+  }
+
   return (
     <div
       style={{
@@ -4696,15 +4769,13 @@ export default function VacationPlanner() {
               <Btn variant="gold" onClick={() => {
                 const cfg = { ...githubForm, token: githubForm.token.trim(), owner: githubForm.owner.trim(), repo: githubForm.repo.trim() };
                 if (!cfg.token || !cfg.owner || !cfg.repo) return;
-                setGithubConfig(cfg);
                 localStorage.setItem("vp_github", JSON.stringify(cfg));
-                setShowGithubModal(false);
+                window.location.reload();
               }}>Save</Btn>
               {githubConfig && (
                 <Btn variant="danger" onClick={() => {
-                  setGithubConfig(null);
                   localStorage.removeItem("vp_github");
-                  setShowGithubModal(false);
+                  window.location.reload();
                 }}>Remove</Btn>
               )}
               <Btn onClick={() => setShowGithubModal(false)}>Cancel</Btn>
